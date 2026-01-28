@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Sankalp! We welcome contributions
 1.  **Fork the repository** on GitHub.
 2.  **Clone your fork** locally:
     ```bash
-    git clone https://github.com/your-username/Sankalp-AI.git
+    git clone https://github.com/Harsidak/Sankalp-AI.git
     cd Sankalp-AI
     ```
 3.  **Set up the environment**:
