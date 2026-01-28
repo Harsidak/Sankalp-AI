@@ -3,6 +3,7 @@ console.log("LiquidEther module loaded. THREE:", THREE);
 
 export class LiquidEther {
     constructor(container, options = {}) {
+        alert("LiquidEther Constructor Called!");
         console.log("LiquidEther: Constructor called with container:", container);
         this.container = container;
         this.options = {

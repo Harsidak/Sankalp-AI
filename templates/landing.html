@@ -428,6 +428,43 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
 
+<!-- DEBUGGER: On-Screen Console -->
+<div id="debug-console"
+    style="position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; background: rgba(0,0,0,0.9); color: #0f0; overflow-y: scroll; z-index: 100000; font-family: monospace; padding: 10px; font-size: 12px; border-top: 2px solid #0f0; pointer-events: none;">
+    <div><strong>DEBUG CONSOLE (Share a screenshot of this if it fails)</strong></div>
+</div>
+<script>
+    (function () {
+        const consoleDiv = document.getElementById('debug-console');
+        function logToScreen(type, args) {
+            const msg = Array.from(args).map(a => {
+                if (typeof a === 'object') {
+                    try { return JSON.stringify(a); } catch (e) { return '[Object]'; }
+                }
+                return String(a);
+            }).join(' ');
+            const line = document.createElement('div');
+            line.style.color = type === 'error' ? '#ff5555' : (type === 'warn' ? '#ffff55' : '#00ff00');
+            line.textContent = `[${type.toUpperCase()}] ${msg}`;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function () { logToScreen('log', arguments); originalLog.apply(console, arguments); };
+        console.error = function () { logToScreen('error', arguments); originalError.apply(console, arguments); };
+        console.warn = function () { logToScreen('warn', arguments); originalWarn.apply(console, arguments); };
+
+        window.onerror = function (msg, url, line) {
+            console.error("Global Error:", msg, "Line:", line);
+        };
+    })();
+</script>
+
+
 <script type="module">
     // Debug: Verify module starts (removed alert)
     console.log("Module script starting...");

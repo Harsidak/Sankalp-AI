@@ -253,8 +253,8 @@ textarea:focus {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 0;
-  /* Behind content (z-10), above aurora (z-[-1]) */
+  z-index: 9999;
+  /* DEBUG: Bring to front */
   opacity: 0.8;
 }
 
