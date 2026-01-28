@@ -488,77 +488,47 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
-    
-    <!-- DEBUG ERROR LOGGER -->
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            const container = document.getElementById('notification-container');
-            const errDiv = document.createElement('div');
-            errDiv.style.background = 'rgba(255, 0, 0, 0.8)';
-            errDiv.style.color = 'white';
-            errDiv.style.padding = '10px';
-            errDiv.style.borderRadius = '8px';
-            errDiv.style.marginTop = '10px';
-            errDiv.style.fontSize = '12px';
-            errDiv.style.pointerEvents = 'auto';
-            errDiv.innerText = `JS Error: ${msg} (Line ${line})`;
-            container.appendChild(errDiv);
-            return false;
-        };
-        
-        window.addEventListener('unhandledrejection', function(event) {
-            const container = document.getElementById('notification-container');
-            const errDiv = document.createElement('div');
-            errDiv.style.background = 'rgba(255, 100, 0, 0.8)';
-            errDiv.style.color = 'white';
-            errDiv.style.padding = '10px';
-            errDiv.style.borderRadius = '8px';
-            errDiv.style.marginTop = '10px';
-            errDiv.style.fontSize = '12px';
-            errDiv.style.pointerEvents = 'auto';
-            errDiv.innerText = `Promise Error: ${event.reason}`;
-            container.appendChild(errDiv);
-        });
-    </script>
+<script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
 
-    <script type="module">
-        import { collection, addDoc } from "firebase/firestore";
-        import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
-        
-        let initASCIIText;
-        try {
-            const module = await import("{{ url_for('static', filename='js/ascii-text.js') }}");
-            initASCIIText = module.initASCIIText;
-        } catch (e) {
-            console.error("Failed to load ASCII Text module:", e);
-            throw new Error("ASCII Module Load Failed: " + e.message);
-        }
 
-        // --- Init ASCII Effect ---
-        // Wait for container to be visible or just load
-        setTimeout(() => {
-            if (initASCIIText) {
-                try {
-                    initASCIIText('ascii-hero', {
-                        text: "Sankalp",
-                        asciiFontSize: 8,
-                        textFontSize: 150,
-                        textColor: '#ffffff',
-                        planeBaseHeight: 14,
-                        enableWaves: true
-                    });
-                    console.log("ASCII Text Initialized");
-                } catch(e) {
-                    console.error("Error initializing ASCII text:", e);
-                    throw e;
-                }
-            } else {
-                console.warn("initASCIIText not available");
+
+<script type="module">
+    import { collection, addDoc } from "firebase/firestore";
+    import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
+
+    let initASCIIText;
+    try {
+        const module = await import("{{ url_for('static', filename='js/ascii-text.js') }}");
+        initASCIIText = module.initASCIIText;
+    } catch (e) {
+        console.error("Failed to load ASCII Text module:", e);
+        throw new Error("ASCII Module Load Failed: " + e.message);
+    }
+
+    // --- Init ASCII Effect ---
+    // Wait for container to be visible or just load
+    setTimeout(() => {
+        if (initASCIIText) {
+            try {
+                initASCIIText('ascii-hero', {
+                    text: "Sankalp",
+                    asciiFontSize: 8,
+                    textFontSize: 150,
+                    textColor: '#ffffff',
+                    planeBaseHeight: 14,
+                    enableWaves: true
+                });
+                console.log("ASCII Text Initialized");
+            } catch (e) {
+                console.error("Error initializing ASCII text:", e);
+                throw e;
             }
-        }, 500);
+        } else {
+            console.warn("initASCIIText not available");
+        }
+    }, 500);
 
-        // --- Auth Logic ---
+    // --- Auth Logic ---
 
     window.openLoginModal = () => {
         const modal = document.getElementById('auth-modal');
