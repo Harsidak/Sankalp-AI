@@ -60,7 +60,7 @@ def get_language_name(code):
         if lang['code'] == code:
             return lang['name']
     return 'English'
-
+ 
 @app.context_processor
 def inject_firebase_config():
     return dict(firebase_config={

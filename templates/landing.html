@@ -421,74 +421,58 @@
     </div>
 
     <!-- Auth Modal (Legacy support for nav button, reusing same logic) -->
-    <div id="auth-modal" class="fixed inset-0 z-[100] hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" onclick="closeAuthModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md glass-panel p-8 animate-enter flex flex-col gap-6 scale-95 opacity-0 transition-all"
-            id="auth-modal-content">
-            <h3 class="text-2xl font-bold text-center">Welcome Back</h3>
-            <p class="text-center text-text-secondary text-sm">Sign in to sync your dashboard and history.</p>
+</div>
+{% endblock %}
 
-            <button onclick="handleGoogleLogin()"
-                class="btn-primary w-full py-3 flex items-center justify-center gap-3">
-                <i class="fa-brands fa-google"></i>
-                Continue with Google
-            </button>
-            <button onclick="handleAnonLogin()"
-                class="text-sm text-text-secondary hover:text-white underline text-center mt-2">
-                Continue as Guest
-            </button>
-            <button onclick="closeAuthModal()"
-                class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
-    </div>
-    {% endblock %}
+<!-- Scripts -->
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
 
-    {% block scripts %}
-    <script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
+<script type="module">
+    // Debug: Verify module starts (removed alert)
+    console.log("Module script starting...");
 
+    import { collection, addDoc } from "firebase/firestore";
+    import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
 
+    // Dynamic import for LiquidEther to handle loading gracefully
+    let initASCIIText;
+    try {
+        const module = await import("{{ url_for('static', filename='js/ascii-text.js') }}");
+        initASCIIText = module.initASCIIText;
+    } catch (e) {
+        console.warn("ASCII Text module failed to load:", e);
+    }
 
-    <script type="module">
-        import { collection, addDoc } from "firebase/firestore";
-        import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
-        import { LiquidEther } from "{{ url_for('static', filename='js/liquid-ether.js') }}";
+    // --- Init Visuals ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. ASCII Effect
+        setTimeout(() => {
+            if (initASCIIText) {
+                initASCIIText('ascii-hero', {
+                    text: "Sankalp",
+                    asciiFontSize: 8,
+                    textFontSize: 150,
+                    textColor: '#ffffff',
+                    planeBaseHeight: 14,
+                    enableWaves: true
+                });
+            }
+        }, 500);
 
-        let initASCIIText;
-        try {
-            const module = await import("{{ url_for('static', filename='js/ascii-text.js') }}");
-            initASCIIText = module.initASCIIText;
-        } catch (e) {
-            console.error("Failed to load ASCII Text module:", e);
-        }
+        // 2. Initialize Liquid Ether
+        const bgContainer = document.getElementById('dither-canvas');
+        if (bgContainer) {
+            try {
+                const { LiquidEther } = await import("{{ url_for('static', filename='js/liquid-ether.js') }}");
 
-        // --- Init Visuals ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. ASCII Effect
-            setTimeout(() => {
-                if (initASCIIText) {
-                    initASCIIText('ascii-hero', {
-                        text: "Sankalp",
-                        asciiFontSize: 8,
-                        textFontSize: 150,
-                        textColor: '#ffffff',
-                        planeBaseHeight: 14,
-                        enableWaves: true
-                    });
-                }
-            }, 500);
-
-            // 2. Liquid Ether Background
-            const bgContainer = document.getElementById('dither-canvas');
-            if (bgContainer) {
                 const getResponsiveConfig = () => {
                     const isMobile = window.innerWidth < 768;
                     return {
                         colors: isMobile
-                            ? ['#4c1d95', '#1e3a8a', '#000000'] // Simpler on mobile
-                            : ['#581c87', '#3b82f6', '#0f172a', '#1e1b4b'], // Richer on desktop
-                        resolution: isMobile ? 0.4 : 0.6, // Performance optimization
+                            ? ['#4c1d95', '#1e3a8a', '#000000']
+                            : ['#581c87', '#3b82f6', '#0f172a', '#1e1b4b'],
+                        resolution: isMobile ? 0.4 : 0.6,
                         cursorSize: isMobile ? 60 : 120,
                         mouseForce: isMobile ? 15 : 30,
                         viscous: 25,
@@ -497,80 +481,84 @@
                     };
                 };
 
-                // Re-init on significant resize handled by the class, but we provide initial responsive config
-                // Note: The class doesn't auto-update options on resize unless we force it, 
-                // but for now, initial load config is most important.
+                console.log("Initializing Liquid Ether...");
                 new LiquidEther(bgContainer, getResponsiveConfig());
-
                 bgContainer.style.opacity = '0.8';
-            }
-        });
 
-        // --- Auth Logic ---
-
-        window.openLoginModal = () => {
-            const modal = document.getElementById('auth-modal');
-            const content = document.getElementById('auth-modal-content');
-            modal.classList.remove('hidden');
-            // Small delay for animation
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        };
-
-        window.closeAuthModal = () => {
-            const modal = document.getElementById('auth-modal');
-            const content = document.getElementById('auth-modal-content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        };
-
-        window.scrollToStart = () => document.getElementById('start-app-section').scrollIntoView({ behavior: 'smooth' });
-
-        window.handleGoogleLogin = async () => {
-            try {
-                const provider = new GoogleAuthProvider();
-                await signInWithPopup(window.auth, provider);
-                // closeAuthModal(); // might not be needed if redirecting
-                addNotification("Welcome back!", "success");
-                setTimeout(() => window.location.href = '/dashboard', 1000);
             } catch (e) {
-                console.error("Login Error:", e);
-                addNotification(e.message, "error");
+                console.error("Failed to load Liquid Ether background:", e);
+                // Silent fallback to Aurora
             }
-        };
+        } else {
+            console.warn("Liquid Ether container #dither-canvas not found.");
+        }
+    });
 
-        window.handleAnonLogin = async () => {
-            try {
-                await signInAnonymously(window.auth);
-                // closeAuthModal();
-                addNotification("Starting anonymous session...", "success");
-                setTimeout(() => window.location.href = '/dashboard', 1000);
-            } catch (e) {
-                addNotification(e.message, "error");
-            }
-        };
+    // --- Auth Logic ---
 
-        // User State Listener Update
-        window.addEventListener('userChanged', (e) => {
-            const user = e.detail.user;
-            const container = document.getElementById('auth-buttons');
-            if (user) {
-                container.innerHTML = `
+    window.openLoginModal = () => {
+        const modal = document.getElementById('auth-modal');
+        const content = document.getElementById('auth-modal-content');
+        modal.classList.remove('hidden');
+        // Small delay for animation
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeAuthModal = () => {
+        const modal = document.getElementById('auth-modal');
+        const content = document.getElementById('auth-modal-content');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    window.scrollToStart = () => document.getElementById('start-app-section').scrollIntoView({ behavior: 'smooth' });
+
+    window.handleGoogleLogin = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(window.auth, provider);
+            // closeAuthModal(); // might not be needed if redirecting
+            addNotification("Welcome back!", "success");
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } catch (e) {
+            console.error("Login Error:", e);
+            addNotification(e.message, "error");
+        }
+    };
+
+    window.handleAnonLogin = async () => {
+        try {
+            await signInAnonymously(window.auth);
+            // closeAuthModal();
+            addNotification("Starting anonymous session...", "success");
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } catch (e) {
+            addNotification(e.message, "error");
+        }
+    };
+
+    // User State Listener Update
+    window.addEventListener('userChanged', (e) => {
+        const user = e.detail.user;
+        const container = document.getElementById('auth-buttons');
+        if (user) {
+            container.innerHTML = `
                 <a href="/dashboard" class="hidden md:flex items-center gap-2 text-sm font-medium hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5">
                     <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + user.displayName}" class="w-8 h-8 rounded-full border border-white/10">
                     <span class="font-semibold">${user.displayName ? user.displayName.split(' ')[0] : 'Guest'}</span>
                 </a>
              `;
-            } else {
-                container.innerHTML = `
+        } else {
+            container.innerHTML = `
                  <button onclick="openLoginModal()" class="text-sm font-medium px-5 py-2 hover:bg-white/5 rounded-full transition-colors text-text-secondary hover:text-white">Log In</button>
                  <button onclick="scrollToStart()" class="text-sm font-semibold px-6 py-2 btn-primary rounded-full shadow-lg shadow-blue-500/20">Get Started</button>
              `;
-            }
-        });
+        }
+    });
 
-    </script>
-    {% endblock %}
+</script>
+{% endblock %}

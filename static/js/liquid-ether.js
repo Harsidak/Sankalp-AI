@@ -1,16 +1,10 @@
-/**
- * LiquidEther - Fluid Simulation Effect (Vanilla JS Port)
- * Based on user-provided React component.
- * Requires Three.js
- */
-
 import * as THREE from 'three';
+console.log("LiquidEther module loaded. THREE:", THREE);
 
 export class LiquidEther {
     constructor(container, options = {}) {
-        console.log("LiquidEther: Constructor called");
+        console.log("LiquidEther: Constructor called with container:", container);
         this.container = container;
-        // ... (rest of options)
         this.options = {
             mouseForce: 20,
             cursorSize: 100,
@@ -32,22 +26,25 @@ export class LiquidEther {
             ...options
         };
 
-        this.mountRef = container;
-        // ...
+        this.webgl = null;
+        this.disposeCtx = null;
 
-        console.log("LiquidEther: Initializing...");
         this.init();
     }
 
     init() {
-        if (!this.mountRef) {
-            console.error("LiquidEther: No mount ref found");
-            return;
-        }
-        console.log("LiquidEther: Mount ref found", this.mountRef);
+        if (!this.container) return;
 
-        // --- Helper: Palette Texture ---
-        const makePaletteTexture = (stops) => {
+        // Unpack options for easy access in closure
+        const options = this.options;
+        const {
+            mouseForce, cursorSize, isViscous, viscous, iterationsViscous, iterationsPoisson,
+            dt, BFECC, resolution, isBounce, colors, autoDemo, autoSpeed, autoIntensity,
+            takeoverDuration, autoResumeDelay, autoRampDuration
+        } = options;
+
+        // --- Helper: Palette ---
+        function makePaletteTexture(stops) {
             let arr;
             if (Array.isArray(stops) && stops.length > 0) {
                 arr = stops.length === 1 ? [stops[0], stops[0]] : stops;
@@ -73,10 +70,10 @@ export class LiquidEther {
             return tex;
         }
 
-        const paletteTex = makePaletteTexture(this.options.colors);
-        const bgVec4 = new THREE.Vector4(0, 0, 0, 0); // Transparent
+        const paletteTex = makePaletteTexture(colors);
+        const bgVec4 = new THREE.Vector4(0, 0, 0, 0);
 
-        // --- Common Class ---
+        // --- Classes ---
         class CommonClass {
             constructor() {
                 this.width = 0; this.height = 0; this.aspect = 1;
@@ -94,6 +91,7 @@ export class LiquidEther {
                 this.renderer.setClearColor(new THREE.Color(0x000000), 0);
                 this.renderer.setPixelRatio(this.pixelRatio);
                 this.renderer.setSize(this.width, this.height);
+                console.log(`Common.init: width=${this.width}, height=${this.height}, pixelRatio=${this.pixelRatio}`);
                 this.renderer.domElement.style.width = '100%';
                 this.renderer.domElement.style.height = '100%';
                 this.renderer.domElement.style.display = 'block';
@@ -115,7 +113,6 @@ export class LiquidEther {
         }
         const Common = new CommonClass();
 
-        // --- Mouse Class ---
         class MouseClass {
             constructor() {
                 this.mouseMoved = false;
@@ -136,7 +133,6 @@ export class LiquidEther {
                 this.takeoverFrom = new THREE.Vector2();
                 this.takeoverTo = new THREE.Vector2();
                 this.onInteract = null;
-
                 this._onMouseMove = this.onDocumentMouseMove.bind(this);
                 this._onTouchStart = this.onDocumentTouchStart.bind(this);
                 this._onTouchMove = this.onDocumentTouchMove.bind(this);
@@ -249,7 +245,7 @@ export class LiquidEther {
         }
         const Mouse = new MouseClass();
 
-        // --- AutoDriver Class ---
+        // --- AutoDriver ---
         class AutoDriver {
             constructor(mouse, manager, opts) {
                 this.mouse = mouse;
@@ -325,16 +321,12 @@ export class LiquidEther {
         const pressure_frag = `precision highp float; uniform sampler2D pressure; uniform sampler2D velocity; uniform vec2 px; uniform float dt; varying vec2 uv; void main(){ float step=1.0; float p0=texture2D(pressure,uv+vec2(px.x*step,0.0)).r; float p1=texture2D(pressure,uv-vec2(px.x*step,0.0)).r; float p2=texture2D(pressure,uv+vec2(0.0,px.y*step)).r; float p3=texture2D(pressure,uv-vec2(0.0,px.y*step)).r; vec2 v=texture2D(velocity,uv).xy; vec2 gradP=vec2(p0-p1,p2-p3)*0.5; v=v-gradP*dt; gl_FragColor=vec4(v,0.0,1.0); }`;
         const viscous_frag = `precision highp float; uniform sampler2D velocity; uniform sampler2D velocity_new; uniform float v; uniform vec2 px; uniform float dt; varying vec2 uv; void main(){ vec2 old=texture2D(velocity,uv).xy; vec2 new0=texture2D(velocity_new,uv+vec2(px.x*2.0,0.0)).xy; vec2 new1=texture2D(velocity_new,uv-vec2(px.x*2.0,0.0)).xy; vec2 new2=texture2D(velocity_new,uv+vec2(0.0,px.y*2.0)).xy; vec2 new3=texture2D(velocity_new,uv-vec2(0.0,px.y*2.0)).xy; vec2 newv=4.0*old+v*dt*(new0+new1+new2+new3); newv/=4.0*(1.0+v*dt); gl_FragColor=vec4(newv,0.0,0.0); }`;
 
-        // --- ShaderPass & Classes ---
+        // --- ShaderPass & Children ---
         class ShaderPass {
             constructor(props) {
                 this.props = props || {};
                 this.uniforms = this.props.material?.uniforms;
-                this.scene = null;
-                this.camera = null;
-                this.material = null;
-                this.geometry = null;
-                this.plane = null;
+                this.scene = null; this.camera = null; this.material = null; this.geometry = null; this.plane = null;
             }
             init() {
                 this.scene = new THREE.Scene();
@@ -353,14 +345,11 @@ export class LiquidEther {
             }
         }
 
-        const simProps = (opts) => opts; // helper
-
         class Advection extends ShaderPass {
             constructor(simProps) {
                 super({
                     material: {
-                        vertexShader: face_vert,
-                        fragmentShader: advection_frag,
+                        vertexShader: face_vert, fragmentShader: advection_frag,
                         uniforms: {
                             boundarySpace: { value: simProps.cellScale },
                             px: { value: simProps.cellScale },
@@ -375,10 +364,7 @@ export class LiquidEther {
                 this.uniforms = this.props.material.uniforms;
                 this.init();
             }
-            init() {
-                super.init();
-                this.createBoundary();
-            }
+            init() { super.init(); this.createBoundary(); }
             createBoundary() {
                 const boundaryG = new THREE.BufferGeometry();
                 const vertices_boundary = new Float32Array([-1, -1, 0, -1, 1, 0, -1, 1, 0, 1, 1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0, -1, -1, 0]);
@@ -406,10 +392,8 @@ export class LiquidEther {
                 super.init();
                 const mouseG = new THREE.PlaneGeometry(1, 1);
                 const mouseM = new THREE.RawShaderMaterial({
-                    vertexShader: mouse_vert,
-                    fragmentShader: externalForce_frag,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false,
+                    vertexShader: mouse_vert, fragmentShader: externalForce_frag,
+                    blending: THREE.AdditiveBlending, depthWrite: false,
                     uniforms: {
                         px: { value: simProps.cellScale },
                         force: { value: new THREE.Vector2(0.0, 0.0) },
@@ -439,8 +423,7 @@ export class LiquidEther {
             constructor(simProps) {
                 super({
                     material: {
-                        vertexShader: face_vert,
-                        fragmentShader: viscous_frag,
+                        vertexShader: face_vert, fragmentShader: viscous_frag,
                         uniforms: {
                             boundarySpace: { value: simProps.boundarySpace },
                             velocity: { value: simProps.src.texture },
@@ -450,9 +433,7 @@ export class LiquidEther {
                             dt: { value: simProps.dt }
                         }
                     },
-                    output: simProps.dst,
-                    output0: simProps.dst_,
-                    output1: simProps.dst
+                    output: simProps.dst, output0: simProps.dst_, output1: simProps.dst
                 });
                 this.init();
             }
@@ -547,17 +528,15 @@ export class LiquidEther {
         }
 
         class Simulation {
-            constructor(options) {
-                this.options = { ...options };
+            constructor(simOptions) {
+                this.options = { ...simOptions };
                 this.fbos = { vel_0: null, vel_1: null, vel_viscous0: null, vel_viscous1: null, div: null, pressure_0: null, pressure_1: null };
                 this.fboSize = new THREE.Vector2();
                 this.cellScale = new THREE.Vector2();
                 this.boundarySpace = new THREE.Vector2();
                 this.init();
             }
-            init() {
-                this.calcSize(); this.createAllFBO(); this.createShaderPass();
-            }
+            init() { this.calcSize(); this.createAllFBO(); this.createShaderPass(); }
             getFloatType() {
                 const isIOS = /(iPad|iPhone|iPod)/i.test(navigator.userAgent);
                 return isIOS ? THREE.HalfFloatType : THREE.FloatType;
@@ -565,9 +544,7 @@ export class LiquidEther {
             createAllFBO() {
                 const type = this.getFloatType();
                 const opts = { type, depthBuffer: false, stencilBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, wrapS: THREE.ClampToEdgeWrapping, wrapT: THREE.ClampToEdgeWrapping };
-                for (let key in this.fbos) {
-                    this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, opts);
-                }
+                for (let key in this.fbos) { this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, opts); }
             }
             createShaderPass() {
                 this.advection = new Advection({ cellScale: this.cellScale, fboSize: this.fboSize, dt: this.options.dt, src: this.fbos.vel_0, dst: this.fbos.vel_1 });
@@ -600,19 +577,15 @@ export class LiquidEther {
         }
 
         class Output {
-            constructor(simulationOptions) {
-                this.simulationOptions = simulationOptions;
-                this.init();
-            }
+            constructor() { this.init(); }
             init() {
-                this.simulation = new Simulation(this.simulationOptions);
+                this.simulation = new Simulation(options); // Pass options
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.Camera();
                 this.output = new THREE.Mesh(
                     new THREE.PlaneGeometry(2, 2),
                     new THREE.RawShaderMaterial({
-                        vertexShader: face_vert,
-                        fragmentShader: color_frag,
+                        vertexShader: face_vert, fragmentShader: color_frag,
                         transparent: true, depthWrite: false,
                         uniforms: {
                             velocity: { value: this.simulation.fbos.vel_0.texture },
@@ -624,7 +597,6 @@ export class LiquidEther {
                 );
                 this.scene.add(this.output);
             }
-            addScene(mesh) { this.scene.add(mesh); }
             resize() { this.simulation.resize(); }
             render() { Common.renderer.setRenderTarget(null); Common.renderer.render(this.scene, this.camera); }
             update() { this.simulation.update(); this.render(); }
@@ -646,10 +618,17 @@ export class LiquidEther {
                     enabled: props.autoDemo, speed: props.autoSpeed, resumeDelay: props.autoResumeDelay, rampDuration: props.autoRampDuration
                 });
                 this.init();
+                this._loop = this.loop.bind(this);
+                this._resize = this.resize.bind(this);
+                this.running = false;
+                window.addEventListener('resize', this._resize);
             }
             init() {
+                console.log("Attempting to append canvas to wrapper:", this.props.$wrapper);
+                Common.renderer.domElement.style.background = 'rgba(0, 0, 255, 0.3)'; // DEBUG: Blue tint
                 this.props.$wrapper.prepend(Common.renderer.domElement);
-                this.output = new Output(this.props.options); // Pass options here
+                console.log("Canvas appended. Wrapper children count:", this.props.$wrapper.children.length);
+                this.output = new Output();
             }
             resize() { Common.resize(); this.output.resize(); }
             render() {
@@ -658,68 +637,75 @@ export class LiquidEther {
                 Common.update();
                 this.output.update();
             }
+            loop() {
+                if (!this.running) return;
+                // DEBUG: Log every ~1 second
+                if (Math.random() < 0.02) console.log("Render loop active");
+                this.render();
+                this.rafRef = requestAnimationFrame(this._loop);
+            }
+            start() {
+                if (this.running) return;
+                this.running = true;
+                this._loop();
+            }
+            pause() {
+                this.running = false;
+                if (this.rafRef) {
+                    cancelAnimationFrame(this.rafRef);
+                    this.rafRef = null;
+                }
+            }
+            dispose() {
+                window.removeEventListener('resize', this._resize);
+                Mouse.dispose();
+                if (Common.renderer) {
+                    const canvas = Common.renderer.domElement;
+                    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+                    Common.renderer.dispose();
+                }
+            }
         }
 
-        const container = this.mountRef;
-        // Styles are handled by CSS or existing attributes, but ensure some basics
-        // container.style.position = container.style.position || 'relative'; // Don't override absolute if set in CSS
-        // container.style.overflow = container.style.overflow || 'hidden';
+        // --- Init Manager ---
+        const container = this.container;
+        // Apply CSS style from class defined in css section
+        container.classList.add('liquid-ether-container');
 
-        this.webgl = new WebGLManager({
+        const webgl = new WebGLManager({
             $wrapper: container,
-            autoDemo: this.options.autoDemo,
-            autoSpeed: this.options.autoSpeed,
-            autoIntensity: this.options.autoIntensity,
-            takeoverDuration: this.options.takeoverDuration,
-            autoResumeDelay: this.options.autoResumeDelay,
-            autoRampDuration: this.options.autoRampDuration,
-            options: this.options
+            autoDemo, autoSpeed, autoIntensity, takeoverDuration, autoResumeDelay, autoRampDuration
         });
 
-        this.webglRef = this.webgl; // store ref
+        webgl.start();
+        this.webgl = webgl;
 
-        // --- Start Loop ---
-        this.run();
-
-        // --- Observers ---
+        // Observers
         const io = new IntersectionObserver(entries => {
             const entry = entries[0];
             const isVisible = entry.isIntersecting && entry.intersectionRatio > 0;
-            this.isVisible = isVisible;
             if (isVisible && !document.hidden) {
-                this.run();
+                webgl.start();
             } else {
-                this.pause();
+                webgl.pause();
             }
         }, { threshold: [0, 0.01, 0.1] });
         io.observe(container);
-        this.intersectionObserverRef = io;
 
         const ro = new ResizeObserver(() => {
-            if (!this.webglRef) return;
-            if (this.resizeRafRef) cancelAnimationFrame(this.resizeRafRef);
-            this.resizeRafRef = requestAnimationFrame(() => {
-                if (!this.webglRef) return;
-                this.webglRef.resize();
-            });
+            if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => webgl.resize(), 100);
         });
         ro.observe(container);
-        this.resizeObserverRef = ro;
-    }
 
-    run() {
-        if (this.rafRef) return;
-        const loop = () => {
-            if (this.webglRef) this.webglRef.render();
-            this.rafRef = requestAnimationFrame(loop);
+        this.disposeCtx = () => {
+            io.disconnect();
+            ro.disconnect();
+            webgl.dispose();
         };
-        loop();
     }
 
-    pause() {
-        if (this.rafRef) {
-            cancelAnimationFrame(this.rafRef);
-            this.rafRef = null;
-        }
+    dispose() {
+        if (this.disposeCtx) this.disposeCtx();
     }
 }
