@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col gap-24 py-10 w-full max-w-6xl mx-auto">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 nav-glass px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-brain text-white text-lg"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">Sankalp</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="#features"
+                class="text-sm font-medium text-text-secondary hover:text-white transition-colors hidden md:block">Features</a>
+            <a href="#mission"
+                class="text-sm font-medium text-text-secondary hover:text-white transition-colors hidden md:block">Our
+                Mission</a>
+
+            <div id="auth-buttons" class="flex gap-3">
+                <!-- Injected by JS based on state -->
+                <button onclick="openLoginModal()"
+                    class="text-sm font-medium px-4 py-2 hover:bg-white/5 rounded-lg transition-colors">Log In</button>
+                <button onclick="scrollToStart()"
+                    class="text-sm font-bold px-5 py-2 btn-primary rounded-lg shadow-lg shadow-purple-500/30">Get
+                    Started</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dither Canvas -->
+    <canvas id="dither-canvas"></canvas>
+
+    <!-- Hero Section -->
+    <section class="min-h-[80vh] flex flex-col items-center justify-center text-center gap-8 mt-16 relative">
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[120px] -z-10">
+        </div>
+
+        <span
+            class="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wide text-purple-300 animate-enter">
+            ✨ AI Companion for Mental Wellness
+        </span>
+
+        <h1 class="text-5xl md:text-7xl font-extrabold leading-tight max-w-4xl animate-enter delay-100" data-ascii>
+            Find Clarity in <br>
+            <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">Every
+                Conversation.</span>
+        </h1>
+
+        <p class="text-lg md:text-xl text-text-secondary max-w-2xl animate-enter delay-200">
+            A safe, non-judgmental space to express your feelings, track your mood, and build resilience. Powered by
+            compassionate AI.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 animate-enter delay-300">
+            <button onclick="scrollToStart()"
+                class="btn-primary px-8 py-4 rounded-2xl text-lg flex items-center gap-3 group">
+                Start Chatting Now
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            <a href="#features" class="btn-frost px-8 py-4 rounded-2xl text-lg flex items-center gap-3">
+                Explore Features
+            </a>
+        </div>
+
+        <!-- UI Mockup / Hero Image -->
+        <!-- UI Mockup / Hero Image -->
+        <div
+            class="mt-12 w-full max-w-4xl glass-panel relative overflow-hidden group animate-enter delay-300 transform perspective-1000 rotate-x-12 animate-float">
+            <!-- Mock Browser/App Header -->
+            <div class="h-10 border-b border-white/5 bg-white/5 flex items-center px-4 gap-2">
+                <div class="flex gap-1.5">
+                    <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                </div>
+                <div class="flex-1 text-center text-[10px] text-white/30 font-mono">sankalp-ai.app</div>
+            </div>
+
+            <!-- Mock App Body -->
+            <div class="p-8 grid grid-cols-12 gap-6 h-[400px] bg-gradient-to-b from-transparent to-black/40">
+                <!-- Sidebar Mock -->
+                <div class="hidden md:block col-span-3 glass-panel h-[80%] my-auto bg-white/5 flex flex-col gap-3 p-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-500/30 mb-2"></div>
+                    <div class="h-2 w-16 bg-white/10 rounded-full"></div>
+                    <div class="h-2 w-12 bg-white/10 rounded-full"></div>
+                    <div
+                        class="mt-auto h-8 w-full rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center text-[10px] text-green-300">
+                        Daily Goal</div>
+                </div>
+
+                <!-- Chat Area Mock -->
+                <div class="col-span-12 md:col-span-9 flex flex-col gap-4 relative">
+                    <!-- AI Msg -->
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-[10px] shadow-lg shadow-purple-500/20">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div class="chat-bubble-ai p-4 max-w-[80%] text-sm text-gray-200 shadow-lg backdrop-blur-md">
+                            Hi! I'm here to listen. How are you feeling today?
+                        </div>
+                    </div>
+
+                    <!-- User Msg -->
+                    <div class="flex items-end gap-3 justify-end mt-2">
+                        <div class="chat-bubble-user p-4 max-w-[80%] text-sm text-white shadow-lg shadow-purple-600/20">
+                            I've been feeling a bit anxious about exams lately.
+                        </div>
+                        <div
+                            class="w-8 h-8 rounded-full bg-gray-700 border border-white/10 flex items-center justify-center text-[10px]">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+
+                    <!-- AI Reply (Typing) -->
+                    <div class="flex items-start gap-3 mt-2">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 shadow-lg"></div>
+                        <div class="chat-bubble-ai p-4 text-sm text-gray-200">
+                            It's completely normal to feel that way. Let's break it down together. 💜
+                        </div>
+                    </div>
+
+                    <!-- Input Bar Mock -->
+                    <div class="mt-auto glass-panel p-2 flex items-center gap-2 border border-white/10">
+                        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><i
+                                class="fa-solid fa-plus text-[10px]"></i></div>
+                        <div class="h-2 w-32 bg-white/10 rounded-full"></div>
+                        <div class="ml-auto w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center"><i
+                                class="fa-solid fa-paper-plane text-xs"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-4 left-0 right-0 z-20 flex justify-center">
+                <p class="text-xs text-white/30 font-mono tracking-widest uppercase">Live Preview</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-20">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold mb-4">Why Sankalp?</h2>
+            <p class="text-text-secondary max-w-xl mx-auto">Designed for students and youth, blending psychology with
+                advanced technology.</p>
+        </div>
+
+        <div id="card-stack-container" class="card-stack-wrapper">
+            <!-- Card 1 -->
+            <div class="swap-card glass-panel group">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-comments text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Empathetic Chat</h3>
+                <p class="text-text-secondary leading-relaxed">Talk freely with an AI that listens without judgment,
+                    offering validation and coping strategies in 10+ languages.</p>
+                <div class="mt-auto text-xs text-text-secondary uppercase tracking-widest text-right">01 / 03</div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="swap-card glass-panel group">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Mood Tracking</h3>
+                <p class="text-text-secondary leading-relaxed">Visualize your emotional journey with beautiful charts.
+                    Understand triggers and patterns over time.</p>
+                <div class="mt-auto text-xs text-text-secondary uppercase tracking-widest text-right">02 / 03</div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="swap-card glass-panel group">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-green-500/20 flex items-center justify-center text-green-400 mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-trophy text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Gamified Wellness</h3>
+                <p class="text-text-secondary leading-relaxed">Complete daily challenges, earn badges, and build
+                    positive habits with a streak-based system.</p>
+                <div class="mt-auto text-xs text-text-secondary uppercase tracking-widest text-right">03 / 03</div>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-text-secondary mt-8 animate-pulse">Click cards to swap</p>
+    </section>
+
+    <!-- Benefits/Mission Section -->
+    <section id="mission" class="grid md:grid-cols-2 gap-12 items-center py-20">
+        <div class="relative h-[400px] glass-panel overflow-hidden group">
+            <!-- Decorative elements mimicking the minimalist rock image idea but relevant -->
+            <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full blur-[50px] opacity-60 group-hover:opacity-80 transition-opacity">
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa-solid fa-hand-holding-heart text-6xl text-white/20"></i>
+            </div>
+        </div>
+        <div class="flex flex-col gap-6">
+            <h2 class="text-3xl font-bold">Helping Students Thrive</h2>
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <div class="w-1 h-full bg-purple-500 rounded-full"></div>
+                    <div>
+                        <h4 class="font-bold text-lg">Academic Stress Relief</h4>
+                        <p class="text-text-secondary text-sm">Targeted advice for exam anxiety and study burnout.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-1 h-full bg-blue-500 rounded-full"></div>
+                    <div>
+                        <h4 class="font-bold text-lg">Emotional Intelligence</h4>
+                        <p class="text-text-secondary text-sm">Learn to identify and regulate emotions effectively.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-1 h-full bg-pink-500 rounded-full"></div>
+                    <div>
+                        <h4 class="font-bold text-lg">24/7 Availability</h4>
+                        <p class="text-text-secondary text-sm">Support is always just one click away, day or night.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works (Timeline) -->
+    <section class="py-20 relative">
+        <h2 class="text-3xl font-bold text-center mb-16">Your Journey to Balance</h2>
+        <div class="max-w-4xl mx-auto relative px-6">
+            <div class="timeline-line"></div>
+
+            <!-- Step 1 -->
+            <div class="relative z-10 grid md:grid-cols-2 gap-12 items-center mb-20 group">
+                <div class="text-right md:pr-12 order-1 md:order-1 animate-enter">
+                    <h3 class="text-2xl font-bold text-purple-400">1. Check-in</h3>
+                    <p class="text-text-secondary mt-2">Simply tell us how you're feeling. No forms, just conversation.
+                    </p>
+                </div>
+                <div
+                    class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-bg-color border-4 border-purple-500 flex items-center justify-center shadow-[0_0_20px_rgba(127,90,240,0.5)] z-20">
+                    <span class="text-xs font-bold">01</span>
+                </div>
+                <div class="order-2 md:order-2 pl-6 md:pl-0">
+                    <div class="glass-panel p-6 transform group-hover:scale-105 transition-transform">
+                        <i class="fa-regular fa-comment-dots text-4xl text-white/20"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="relative z-10 grid md:grid-cols-2 gap-12 items-center mb-20 group">
+                <div class="order-2 md:order-1 pl-6 md:pl-0 md:text-right">
+                    <div class="glass-panel p-6 transform group-hover:scale-105 transition-transform flex justify-end">
+                        <i class="fa-solid fa-wand-magic-sparkles text-4xl text-white/20"></i>
+                    </div>
+                </div>
+                <div
+                    class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-bg-color border-4 border-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(50,150,250,0.5)] z-20">
+                    <span class="text-xs font-bold">02</span>
+                </div>
+                <div class="order-1 md:order-2 animate-enter delay-100">
+                    <h3 class="text-2xl font-bold text-blue-400">2. Analyze</h3>
+                    <p class="text-text-secondary mt-2">Sankalp understands the nuance of your emotions and intensity.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="relative z-10 grid md:grid-cols-2 gap-12 items-center mb-20 group">
+                <div class="text-right md:pr-12 order-1 md:order-1 animate-enter delay-200">
+                    <h3 class="text-2xl font-bold text-green-400">3. Grow</h3>
+                    <p class="text-text-secondary mt-2">Get personalized coping strategies and track your mood trends.
+                    </p>
+                </div>
+                <div
+                    class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-bg-color border-4 border-green-500 flex items-center justify-center shadow-[0_0_20px_rgba(44,182,125,0.5)] z-20">
+                    <span class="text-xs font-bold">03</span>
+                </div>
+                <div class="order-2 md:order-2 pl-6 md:pl-0">
+                    <div class="glass-panel p-6 transform group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-seedling text-4xl text-white/20"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials (Stories) -->
+    <section class="py-20">
+        <h2 class="text-3xl font-bold text-center mb-16">Stories of Resilience</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Story 1 -->
+            <div class="glass-panel p-8 glow-card" style="--glow-color: rgba(127, 90, 240, 0.4);">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold">
+                        A</div>
+                    <div>
+                        <h4 class="font-bold">Aarav</h4>
+                        <p class="text-xs text-text-secondary">Student, 19</p>
+                    </div>
+                </div>
+                <p class="text-text-secondary italic">"I was overwhelmed with finals. Talking to Sankalp felt like
+                    venting to a friend who actually had good advice. It helped me break my study load into chunks."</p>
+                <div class="mt-4 flex gap-1 text-yellow-500 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                        class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+            </div>
+
+            <!-- Story 2 -->
+            <div class="glass-panel p-8 glow-card" style="--glow-color: rgba(44, 182, 125, 0.4);">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-sm font-bold">
+                        P</div>
+                    <div>
+                        <h4 class="font-bold">Priya</h4>
+                        <p class="text-xs text-text-secondary">Designer, 22</p>
+                    </div>
+                </div>
+                <p class="text-text-secondary italic">"The mood tracking is my favorite. seeing my 'anxious' days go
+                    down as I started using the breathing techniques it suggested was huge for me."</p>
+                <div class="mt-4 flex gap-1 text-yellow-500 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                        class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+            </div>
+
+            <!-- Story 3 -->
+            <div class="glass-panel p-8 glow-card" style="--glow-color: rgba(50, 150, 250, 0.4);">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold">
+                        R</div>
+                    <div>
+                        <h4 class="font-bold">Rahul</h4>
+                        <p class="text-xs text-text-secondary">High Schooler, 16</p>
+                    </div>
+                </div>
+                <p class="text-text-secondary italic">"Sometimes I just feel lonely at night and can't sleep. It's nice
+                    to have someone to say 'goodnight' to who doesn't judge my insomnia."</p>
+                <div class="mt-4 flex gap-1 text-yellow-500 text-xs">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                        class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Accordion -->
+    <section class="py-20 max-w-3xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-16">Common Questions</h2>
+        <div class="flex flex-col gap-4" id="faq-container">
+            <!-- FAQ 1 -->
+            <div
+                class="glass-panel p-0 overflow-hidden faq-item cursor-pointer group hover:bg-white/5 transition-colors">
+                <div class="p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+                    <h3 class="font-bold text-lg">Is my conversation private?</h3>
+                    <i class="fa-solid fa-chevron-down text-text-secondary faq-icon group-hover:text-white"></i>
+                </div>
+                <div class="faq-answer px-6 pb-0">
+                    <p class="text-text-secondary pb-6">Yes. Your chats are stored securely in your personal account
+                        linked to your Firebase ID. We do not sell your data. Conversations are used solely to provide
+                        you with support.</p>
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div
+                class="glass-panel p-0 overflow-hidden faq-item cursor-pointer group hover:bg-white/5 transition-colors">
+                <div class="p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+                    <h3 class="font-bold text-lg">Is this a replacement for therapy?</h3>
+                    <i class="fa-solid fa-chevron-down text-text-secondary faq-icon group-hover:text-white"></i>
+                </div>
+                <div class="faq-answer px-6 pb-0">
+                    <p class="text-text-secondary pb-6">No. Sankalp is a self-help tool and a companion. It is not a
+                        licensed therapist. If you are in crisis or have a severe mental health condition, please seek
+                        professional help immediately.</p>
+                </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div
+                class="glass-panel p-0 overflow-hidden faq-item cursor-pointer group hover:bg-white/5 transition-colors">
+                <div class="p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+                    <h3 class="font-bold text-lg">Is it really free?</h3>
+                    <i class="fa-solid fa-chevron-down text-text-secondary faq-icon group-hover:text-white"></i>
+                </div>
+                <div class="faq-answer px-6 pb-0">
+                    <p class="text-text-secondary pb-6">Yes! Our core mission is to make mental health support
+                        accessible to students. All standard chat and tracking features are completely free to use.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Entry Section (Auth Only) -->
+    <section id="start-app-section" class="py-32 relative">
+        <div
+            class="glass-panel p-10 md:p-16 flex flex-col items-center text-center gap-10 max-w-2xl mx-auto border-t border-white/10 shadow-[0_0_80px_-20px_rgba(10,132,255,0.2)]">
+
+            <div
+                class="w-16 h-16 rounded-full bg-linear-to-tr from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg mb-2">
+                <i class="fa-solid fa-sparkles text-2xl text-white"></i>
+            </div>
+
+            <!-- ASCII Text Container -->
+            <div
+                class="w-full relative h-[120px] md:h-[150px] mb-4 overflow-hidden rounded-xl border border-white/5 bg-black/40">
+                <div id="ascii-hero" class="absolute inset-0 z-10"></div>
+                <!-- Fallback for no-js or loading -->
+                <h2 id="ascii-fallback"
+                    class="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-bold tracking-tight text-white/20">
+                    Sankalp</h2>
+            </div>
+
+            <div>
+                <p class="text-lg text-text-secondary max-w-md mx-auto leading-relaxed">
+                    Join thousands of students finding balance and clarity. No forms, no fuss.
+                </p>
+            </div>
+
+            <div class="flex flex-col w-full max-w-sm gap-4">
+                <button onclick="handleGoogleLogin()"
+                    class="btn-primary w-full py-4 text-lg flex items-center justify-center gap-3 group relative overflow-hidden">
+                    <span class="relative z-10 flex items-center gap-3">
+                        <i class="fa-brands fa-google text-white/90"></i>
+                        <span>Continue with Google</span>
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    </div>
+                </button>
+
+                <button onclick="handleAnonLogin()"
+                    class="btn-frost w-full py-4 text-lg flex items-center justify-center gap-3 group">
+                    <span>Continue Anonymously</span>
+                    <i
+                        class="fa-solid fa-arrow-right text-sm opacity-50 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-text-tertiary mt-2">
+                By continuing, you agree to our Terms & Privacy Policy.
+            </p>
+        </div>
+    </section>
+
+    <footer class="text-center text-text-secondary text-sm pb-12 pt-12 border-t border-white/5">
+        <div class="flex justify-center gap-8 mb-6">
+            <a href="#" class="hover:text-white transition-colors duration-300">Privacy</a>
+            <a href="#" class="hover:text-white transition-colors duration-300">Terms</a>
+            <a href="#" class="hover:text-white transition-colors duration-300">Contact</a>
+        </div>
+        <p class="opacity-50">&copy; 2026 Sankalp AI. Design by Deepmind.</p>
+    </footer>
+
+</div>
+
+<!-- Auth Modal (Legacy support for nav button, reusing same logic) -->
+<div id="auth-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" onclick="closeAuthModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md glass-panel p-8 animate-enter flex flex-col gap-6 scale-95 opacity-0 transition-all"
+        id="auth-modal-content">
+        <h3 class="text-2xl font-bold text-center">Welcome Back</h3>
+        <p class="text-center text-text-secondary text-sm">Sign in to sync your dashboard and history.</p>
+
+        <button onclick="handleGoogleLogin()" class="btn-primary w-full py-3 flex items-center justify-center gap-3">
+            <i class="fa-brands fa-google"></i>
+            Continue with Google
+        </button>
+        <button onclick="handleAnonLogin()"
+            class="text-sm text-text-secondary hover:text-white underline text-center mt-2">
+            Continue as Guest
+        </button>
+        <button onclick="closeAuthModal()"
+            class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/visuals.js') }}"></script>
+<script type="module">
+    import { collection, addDoc } from "firebase/firestore";
+    import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from "firebase/auth";
+    import { initASCIIText } from "{{ url_for('static', filename='js/ascii-text.js') }}";
+
+    // --- Init ASCII Effect ---
+    // Wait for container to be visible or just load
+    setTimeout(() => {
+        initASCIIText('ascii-hero', {
+            text: "Sankalp",
+            asciiFontSize: 8,
+            textFontSize: 150,
+            textColor: '#ffffff',
+            planeBaseHeight: 14,
+            enableWaves: true
+        });
+    }, 500);
+
+    // --- Auth Logic ---
+
+    window.openLoginModal = () => {
+        const modal = document.getElementById('auth-modal');
+        const content = document.getElementById('auth-modal-content');
+        modal.classList.remove('hidden');
+        // Small delay for animation
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeAuthModal = () => {
+        const modal = document.getElementById('auth-modal');
+        const content = document.getElementById('auth-modal-content');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    window.scrollToStart = () => document.getElementById('start-app-section').scrollIntoView({ behavior: 'smooth' });
+
+    window.handleGoogleLogin = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(window.auth, provider);
+            // closeAuthModal(); // might not be needed if redirecting
+            addNotification("Welcome back!", "success");
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } catch (e) {
+            console.error("Login Error:", e);
+            addNotification(e.message, "error");
+        }
+    };
+
+    window.handleAnonLogin = async () => {
+        try {
+            await signInAnonymously(window.auth);
+            // closeAuthModal();
+            addNotification("Starting anonymous session...", "success");
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } catch (e) {
+            addNotification(e.message, "error");
+        }
+    };
+
+    // User State Listener Update
+    window.addEventListener('userChanged', (e) => {
+        const user = e.detail.user;
+        const container = document.getElementById('auth-buttons');
+        if (user) {
+            container.innerHTML = `
+                <a href="/dashboard" class="hidden md:flex items-center gap-2 text-sm font-medium hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5">
+                    <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + user.displayName}" class="w-8 h-8 rounded-full border border-white/10">
+                    <span class="font-semibold">${user.displayName ? user.displayName.split(' ')[0] : 'Guest'}</span>
+                </a>
+             `;
+        } else {
+            container.innerHTML = `
+                 <button onclick="openLoginModal()" class="text-sm font-medium px-5 py-2 hover:bg-white/5 rounded-full transition-colors text-text-secondary hover:text-white">Log In</button>
+                 <button onclick="scrollToStart()" class="text-sm font-semibold px-6 py-2 btn-primary rounded-full shadow-lg shadow-blue-500/20">Get Started</button>
+             `;
+        }
+    });
+
+</script>
+{% endblock %}

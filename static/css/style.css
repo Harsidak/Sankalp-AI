@@ -1,0 +1,310 @@
+:root {
+  /* iOS 26 Minimalist Dark Theme */
+  --bg-color: #000000;
+  /* Pure black for OLED depth */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  /* Frosted glass base */
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.15);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(235, 235, 245, 0.6);
+  --text-tertiary: rgba(235, 235, 245, 0.3);
+
+  --accent-primary: #2997FF;
+  /* Slightly brighter blue */
+  --accent-secondary: #5E5CE6;
+  --accent-success: #30D158;
+  --accent-warning: #FFD60A;
+  --accent-danger: #FF453A;
+
+  --radius-lg: 32px;
+
+  /* Animation */
+  --ease-spring: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* --- Aurora Background (Subtler) --- */
+#aurora-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: radial-gradient(circle at 50% -10%, #1a1a2e 0%, #000000 100%);
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  will-change: transform;
+}
+
+.blob-1 {
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(94, 92, 230, 0.4) 0%, transparent 70%);
+  top: -20%;
+  left: -10%;
+  animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blob-2 {
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(10, 132, 255, 0.3) 0%, transparent 70%);
+  bottom: -10%;
+  right: -10%;
+  animation: float 25s infinite alternate-reverse cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blob-3 {
+  display: none;
+}
+
+/* Simplified */
+
+@keyframes float {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(30px, 30px, 0);
+  }
+}
+
+/* --- Glassmorphism Components --- */
+.glass-panel {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-spring), background 0.4s;
+}
+
+.glass-panel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--glass-highlight);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* --- Liquid / Frosty Buttons --- */
+/* Primary "Liquid" Button */
+.btn-primary {
+  position: relative;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  border: none;
+  border-radius: 100px;
+  /* Pill shape */
+  color: white;
+  font-weight: 600;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(10, 132, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transition: all 0.3s var(--ease-spring);
+  z-index: 1;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(10, 132, 255, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  filter: brightness(1.1);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+/* Secondary "Frost" Button */
+.btn-frost {
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.btn-frost:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* --- Inputs --- */
+input,
+textarea {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--radius-md) !important;
+  color: white !important;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent-primary) !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.3) !important;
+  outline: none;
+}
+
+/* --- Navigation --- */
+.nav-glass {
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- Charts / Dashboard --- */
+.metric-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+}
+
+/* --- Animations --- */
+.animate-enter {
+  animation: slideUpFade 0.8s var(--ease-spring) forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes slideUpFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-pulse {
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- Chat Bubbles (iOS style) --- */
+.chat-bubble-user {
+  background: var(--accent-primary);
+  border-radius: 20px 20px 4px 20px;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+.chat-bubble-ai {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px 20px 20px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- Timeline & Features --- */
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--glass-border), transparent);
+  z-index: 0;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* --- Dither --- */
+#dither-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.03;
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+/* --- Utilities --- */
+.text-gradient {
+  background: linear-gradient(120deg, #FFFFFF 0%, #A5B4FC 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
