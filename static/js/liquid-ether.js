@@ -439,7 +439,8 @@ export class LiquidEther {
                 this.init();
             }
             update({ viscous, iterations, dt }) {
-                let fbo_in, fbo_out;
+                let fbo_in = this.props.output0;
+                let fbo_out = this.props.output1;
                 this.uniforms.v.value = viscous;
                 for (let i = 0; i < iterations; i++) {
                     if (i % 2 === 0) { fbo_in = this.props.output0; fbo_out = this.props.output1; }
@@ -492,7 +493,8 @@ export class LiquidEther {
                 this.init();
             }
             update({ iterations }) {
-                let p_in, p_out;
+                let p_in = this.props.output0;
+                let p_out = this.props.output1;
                 for (let i = 0; i < iterations; i++) {
                     if (i % 2 === 0) { p_in = this.props.output0; p_out = this.props.output1; }
                     else { p_in = this.props.output1; p_out = this.props.output0; }
