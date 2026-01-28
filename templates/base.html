@@ -21,7 +21,8 @@
       "imports": {
         "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
         "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
       }
     }
     </script>
@@ -46,7 +47,7 @@
     <div id="notification-container"
         class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <div class="min-h-screen w-full flex flex-col items-center justify-center p-0 font-sans text-primary relative">
+    <div class="min-h-screen w-full flex flex-col items-center justify-center p-0 font-sans text-primary relative z-10">
         <main class="w-full h-full transition-all duration-500">
             {% block content %}{% endblock %}
         </main>
