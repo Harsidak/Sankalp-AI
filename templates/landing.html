@@ -498,7 +498,36 @@
         initApp();
     }
 
-    // --- Auth Logic ---
+    // --- Auto-Redirect & Auth Logic ---
+    window.addEventListener('userChanged', (e) => {
+        const user = e.detail.user;
+        const container = document.getElementById('auth-buttons');
+
+        if (user) {
+            // Update Nav UI
+            container.innerHTML = `
+                <a href="/dashboard" class="hidden md:flex items-center gap-2 text-sm font-medium hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5">
+                    <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=' + user.displayName}" class="w-8 h-8 rounded-full border border-white/10">
+                    <span class="font-semibold">${user.displayName ? user.displayName.split(' ')[0] : 'Guest'}</span>
+                </a>
+             `;
+
+            // Auto-Redirect if on landing and just logged in/refreshed
+            // We use session storage to prevent redirect loop if user explicitly navigates back to home
+            // But user asked "Once loged in make sure whenever I am running server.py it should be leading me to dashboard"
+            // A simple check is: if on landing page and user is authed, go to dashboard.
+            if (window.location.pathname === '/') {
+                console.log("User logged in, redirecting to Dashboard...");
+                window.location.href = '/dashboard';
+            }
+
+        } else {
+            container.innerHTML = `
+                 <button onclick="openLoginModal()" class="text-sm font-medium px-5 py-2 hover:bg-white/5 rounded-full transition-colors text-text-secondary hover:text-white">Log In</button>
+                 <button onclick="scrollToStart()" class="text-sm font-semibold px-6 py-2 btn-primary rounded-full shadow-lg shadow-blue-500/20">Get Started</button>
+             `;
+        }
+    });
 
     window.openLoginModal = () => {
         const modal = document.getElementById('auth-modal');
