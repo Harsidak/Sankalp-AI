@@ -335,8 +335,8 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- ApexCharts CDN -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<!-- Apache ECharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
 <script type="module">
     import { doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit } from "firebase/firestore";
@@ -366,7 +366,6 @@
         list.classList.toggle('flex');
         chevron.classList.toggle('rotate-180');
 
-        // Fetch history only if opening and empty/loading placeholder
         if (!list.classList.contains('hidden')) {
             loadChatHistory();
         }
@@ -379,8 +378,6 @@
 
         try {
             const chatsRef = collection(window.db, 'users', window.currentUser.uid, 'sessions');
-            // Note: Ensure Firestore index exists for orderBy 'createdAt', otherwise might fail silently or error
-            // Fallback to simpler fetch if index needs creation
             const q = query(chatsRef, limit(10));
             const querySnapshot = await getDocs(q);
 
@@ -503,31 +500,9 @@
         }
     });
 
-    // --- Charts Config ---
-    const commonChartOptions = {
-        chart: {
-            fontFamily: 'Outfit, sans-serif',
-            toolbar: { show: false },
-            background: 'transparent',
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800,
-                animateGradually: { enabled: true, delay: 150 },
-                dynamicAnimation: { enabled: true, speed: 350 }
-            }
-        },
-        theme: { mode: 'dark' },
-        dataLabels: { enabled: false },
-        tooltip: {
-            theme: 'dark',
-            style: { fontSize: '12px', fontFamily: 'Outfit' },
-            x: { show: false },
-            marker: { show: true },
-        }
-    };
-
     // --- Dashboard Data Logic ---
+    let wellnessChart, moodChart, emotionChart;
+
     window.addEventListener('userChanged', async (e) => {
         const user = e.detail.user;
         if (!user) { window.location.href = '/'; return; }
@@ -545,13 +520,27 @@
         loadDashboard(window.currentUser.uid);
     }
 
+    // Setup Resize Observer for ECharts
+    const resizeObserver = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.target.id === 'wellness-chart' && wellnessChart) wellnessChart.resize();
+            if (entry.target.id === 'mood-trend-chart' && moodChart) moodChart.resize();
+            if (entry.target.id === 'emotion-donut-chart' && emotionChart) emotionChart.resize();
+        });
+    });
+
+    function initChartContainers() {
+        resizeObserver.observe(document.getElementById('wellness-chart'));
+        resizeObserver.observe(document.getElementById('mood-trend-chart'));
+        resizeObserver.observe(document.getElementById('emotion-donut-chart'));
+    }
+
     async function loadDashboard(uid) {
         try {
             const ref = doc(window.db, 'users', uid, 'data', 'dashboard');
             const snap = await getDoc(ref);
 
             let data;
-            // Always fetch fresh for demo feel
             if (snap.exists()) {
                 data = snap.data();
             } else {
@@ -566,6 +555,9 @@
             renderDashboard(data);
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('content').classList.remove('hidden');
+
+            // Allow DOM to settle before chart init
+            setTimeout(initChartContainers, 100);
 
         } catch (e) {
             console.error(e);
@@ -582,106 +574,169 @@
     }
 
     function renderCharts(metrics, analyticsData) {
-        // 1. Wellness Score (Enhanced Radial)
-        const wellnessScore = 85;
-        const radialOptions = {
-            ...commonChartOptions,
-            series: [wellnessScore],
-            chart: { height: 280, type: 'radialBar' },
-            plotOptions: {
-                radialBar: {
-                    hollow: { size: '60%', margin: 15, background: 'transparent' },
-                    track: {
-                        background: 'rgba(255,255,255,0.05)',
-                        strokeWidth: '100%',
-                        dropShadow: { enabled: true, top: 0, left: 0, blur: 3, opacity: 0.5 }
-                    },
-                    dataLabels: {
-                        name: { show: false },
-                        value: { show: true, fontSize: '36px', fontWeight: 700, color: '#fff', offsetY: 10, formatter: (val) => val + '%' }
-                    }
-                }
-            },
-            fill: {
-                type: 'gradient',
-                gradient: { shade: 'dark', type: 'vertical', gradientToColors: ['#a855f7'], stops: [0, 100] }
-            },
-            colors: ['#3b82f6'],
-            stroke: { lineCap: 'round' }
-        };
-        new ApexCharts(document.querySelector("#wellness-chart"), radialOptions).render();
+        // --- 1. Wellness Score (ECharts Gauge/Ring) ---
+        const wellnessEl = document.getElementById('wellness-chart');
+        if (wellnessChart) wellnessChart.dispose();
+        wellnessChart = echarts.init(wellnessEl);
 
-        // 2. Mood Trend (Vibrant Area Spline)
-        const moodSeries = [{ name: 'Mood', data: analyticsData.moodTrend.map(d => d.moodScore) }];
+        const wellnessScore = 85;
+        const wOption = {
+            series: [
+                {
+                    type: 'gauge',
+                    startAngle: 90,
+                    endAngle: -270,
+                    pointer: { show: false },
+                    progress: {
+                        show: true,
+                        overlap: false,
+                        roundCap: true,
+                        clip: false,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#3b82f6' },
+                                { offset: 1, color: '#a855f7' }
+                            ]),
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(168, 85, 247, 0.5)'
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            width: 20,
+                            color: [[1, 'rgba(255,255,255,0.05)']]
+                        }
+                    },
+                    splitLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { show: false },
+                    data: [{
+                        value: wellnessScore,
+                        detail: {
+                            formatter: '{value}%',
+                            offsetCenter: ['0%', '0%'],
+                            fontSize: 36,
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            fontFamily: 'Outfit'
+                        }
+                    }],
+                    detail: { show: true }
+                }
+            ]
+        };
+        wellnessChart.setOption(wOption);
+
+
+        // --- 2. Mood Trend (ECharts Area Line) ---
+        const moodEl = document.getElementById('mood-trend-chart');
+        if (moodChart) moodChart.dispose();
+        moodChart = echarts.init(moodEl);
+
+        const moodData = analyticsData.moodTrend.map(d => d.moodScore);
         const moodLabels = analyticsData.moodTrend.map(d => d.day);
 
-        const areaOptions = {
-            ...commonChartOptions,
-            series: moodSeries,
-            chart: { type: 'area', height: '100%', sparkline: { enabled: false } },
-            stroke: { curve: 'smooth', width: 3, colors: ['#a855f7'] },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    type: "vertical",
-                    opacityFrom: 0.6,
-                    opacityTo: 0.1,
-                    stops: [0, 90, 100],
-                    colorStops: [
-                        { offset: 0, color: '#a855f7', opacity: 0.6 },
-                        { offset: 100, color: '#3b82f6', opacity: 0 }
-                    ]
-                }
+        const mOption = {
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                textStyle: { color: '#fff' },
+                borderWidth: 0,
+                axisPointer: { type: 'line', lineStyle: { color: 'rgba(255,255,255,0.2)' } }
             },
-            xaxis: {
-                categories: moodLabels,
-                axisBorder: { show: false },
-                axisTicks: { show: false },
-                labels: { style: { colors: '#94a3b8', fontSize: '10px', fontFamily: 'Outfit' } }
+            grid: { left: 0, right: 0, top: 10, bottom: 0, containLabel: false },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: moodLabels,
+                show: false
             },
-            yaxis: { show: false, min: 0, max: 12 },
-            grid: { show: true, borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 }
-        };
-        new ApexCharts(document.querySelector("#mood-trend-chart"), areaOptions).render();
-
-        // 3. Emotion Breakdown (Refined Donut/Pie)
-        const emotionSeries = analyticsData.emotionBreakdown.map(e => e.percentage);
-        const emotionLabels = analyticsData.emotionBreakdown.map(e => e.emotion);
-        const emotionColors = analyticsData.emotionBreakdown.map(e => e.color || '#3b82f6');
-
-        const donutOptions = {
-            ...commonChartOptions,
-            series: emotionSeries,
-            labels: emotionLabels,
-            chart: { type: 'donut', height: 320 },
-            colors: emotionColors,
-            stroke: { show: true, width: 2, colors: ['#050507'] }, // Dark border to blend with bg
-            plotOptions: {
-                pie: {
-                    donut: {
-                        size: '70%',
-                        labels: {
-                            show: true,
-                            name: { show: true, color: '#94a3b8', fontSize: '12px' },
-                            value: { show: true, color: '#fff', fontSize: '24px', fontWeight: 600 },
-                            total: {
-                                show: true, label: 'Dominant', color: '#94a3b8',
-                                formatter: function (w) { return emotionLabels[0] }
-                            }
-                        }
+            yAxis: {
+                type: 'value',
+                show: false,
+                min: 0, max: 12
+            },
+            series: [
+                {
+                    data: moodData,
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none', // hide points unless hover
+                    lineStyle: {
+                        width: 3,
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#3b82f6' },
+                            { offset: 1, color: '#a855f7' }
+                        ]),
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(168, 85, 247, 0.5)'
+                    },
+                    areaStyle: {
+                        opacity: 0.8,
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(168, 85, 247, 0.4)' },
+                            { offset: 1, color: 'rgba(59, 130, 246, 0.01)' }
+                        ])
                     }
                 }
+            ]
+        };
+        moodChart.setOption(mOption);
+
+
+        // --- 3. Emotion Breakdown (ECharts Donut/Pie) ---
+        const emotionEl = document.getElementById('emotion-donut-chart');
+        if (emotionChart) emotionChart.dispose();
+        emotionChart = echarts.init(emotionEl);
+
+        const emotionData = analyticsData.emotionBreakdown.map(e => ({
+            value: e.percentage,
+            name: e.emotion,
+            itemStyle: { color: e.color || '#3b82f6' }
+        }));
+
+        const eOption = {
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                textStyle: { color: '#fff' },
+                borderWidth: 0
             },
             legend: {
-                position: 'bottom',
-                labels: { colors: '#94a3b8' },
-                markers: { radius: 12 },
-                itemMargin: { horizontal: 10, vertical: 5 }
+                bottom: '0%',
+                itemWidth: 10,
+                itemHeight: 10,
+                textStyle: { color: '#94a3b8' }
             },
-            dataLabels: { enabled: false }
+            series: [
+                {
+                    name: 'Emotions',
+                    type: 'pie',
+                    radius: ['50%', '70%'],
+                    center: ['50%', '45%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#050507',
+                        borderWidth: 3
+                    },
+                    label: { show: false },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 16,
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            formatter: '{b}\n{d}%'
+                        },
+                        scale: true,
+                        scaleSize: 10
+                    },
+                    data: emotionData
+                }
+            ]
         };
-        new ApexCharts(document.querySelector("#emotion-donut-chart"), donutOptions).render();
+        emotionChart.setOption(eOption);
     }
 
     // Complete Daily (Global)
