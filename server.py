@@ -64,14 +64,14 @@ def get_language_name(code):
 @app.context_processor
 def inject_firebase_config():
     return dict(firebase_config={
-        'apiKey': os.getenv("FIREBASE_API_KEY"),
-        'authDomain': os.getenv("FIREBASE_AUTH_DOMAIN"),
-        'databaseURL': os.getenv("FIREBASE_DATABASE_URL"),
-        'projectId': os.getenv("FIREBASE_PROJECT_ID"),
-        'storageBucket': os.getenv("FIREBASE_STORAGE_BUCKET"),
-        'messagingSenderId': os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
-        'appId': os.getenv("FIREBASE_APP_ID"),
-        'measurementId': os.getenv("FIREBASE_MEASUREMENT_ID")
+        'apiKey': os.getenv("FIREBASE_API_KEY", "AIzaSyB9V6jbdF08wDA4MOtkcWSw6i036YVKi94"),
+        'authDomain': os.getenv("FIREBASE_AUTH_DOMAIN", "sankalp-chatbot.firebaseapp.com"),
+        'databaseURL': os.getenv("FIREBASE_DATABASE_URL"), # Optional/Not in tsx?
+        'projectId': os.getenv("FIREBASE_PROJECT_ID", "sankalp-chatbot"),
+        'storageBucket': os.getenv("FIREBASE_STORAGE_BUCKET", "sankalp-chatbot.firebasestorage.app"),
+        'messagingSenderId': os.getenv("FIREBASE_MESSAGING_SENDER_ID", "132596670287"),
+        'appId': os.getenv("FIREBASE_APP_ID", "1:132596670287:web:ef94b7c40ecb196024af3a"),
+        'measurementId': os.getenv("FIREBASE_MEASUREMENT_ID", "G-2YPC9KMP6R")
     })
 
 @app.route('/')
