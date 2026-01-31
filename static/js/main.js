@@ -121,3 +121,31 @@ onValue(allUsersStatusRef, (snapshot) => {
         window.dispatchEvent(new CustomEvent('onlineUsersUpdate', { detail: { count } }));
     }
 });
+
+// --- GLOBAL XP SYSTEM ---
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+
+window.addXP = async (amount, reason) => {
+    if (!window.currentUser) return;
+    const userRef = doc(window.db, 'users', window.currentUser.uid, 'data', 'profile');
+
+    try {
+        const snap = await getDoc(userRef);
+        let currentXP = 0;
+        if (snap.exists() && snap.data().xp) {
+            currentXP = snap.data().xp;
+        }
+        const newXP = currentXP + amount;
+        await setDoc(userRef, { xp: newXP }, { merge: true });
+
+        // Dispatch event for UI updates
+        window.dispatchEvent(new CustomEvent('xpAdded', { detail: { amount, reason, total: newXP } }));
+
+        // Optional: Call addNotification if available
+        if (window.addNotification) {
+            window.addNotification(`+${amount} XP: ${reason}`, 'success');
+        }
+    } catch (e) {
+        console.error("XP Error", e);
+    }
+};

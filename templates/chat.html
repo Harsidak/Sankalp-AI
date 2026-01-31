@@ -203,13 +203,16 @@
         typingDiv.id = 'typing-indicator';
         typingDiv.className = "flex justify-start animate-enter";
         typingDiv.innerHTML = `
-            <div class="bg-white/5 text-gray-100 rounded-[24px] rounded-tl-sm backdrop-blur-md border border-white/5 p-4 flex items-center gap-1.5 h-[54px]">
+            <div class="border border-white/5 p-4 flex items-center gap-1.5 h-[54px] bg-white/5 text-gray-100 rounded-[24px] rounded-tl-sm backdrop-blur-md">
                  <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce"></span>
                  <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce delay-100"></span>
                  <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce delay-200"></span>
             </div>`;
         container.appendChild(typingDiv);
         scrollToBottom();
+
+        // Award XP
+        if (window.addXP) window.addXP(2, "Message Sent");
 
         try {
             const context = await getContext();

@@ -1060,28 +1060,6 @@
     }
 
 
-    // --- XP SYSTEM ---
-    async function addXP(amount, reason) {
-        if (!window.currentUser) return;
-        const userRef = doc(window.db, 'users', window.currentUser.uid, 'data', 'profile');
-
-        try {
-            const snap = await getDoc(userRef);
-            let currentXP = 0;
-            if (snap.exists() && snap.data().xp) {
-                currentXP = snap.data().xp;
-            }
-            const newXP = currentXP + amount;
-            await setDoc(userRef, { xp: newXP }, { merge: true });
-
-            // Check Level Up logic here if needed (e.g., every 1000 XP)
-            // For now just save
-        } catch (e) {
-            console.error("XP Error", e);
-        }
-    }
-
-
     // --- MOOD MODAL ---
     window.openMoodModal = () => {
         const modal = document.getElementById('mood-modal');
