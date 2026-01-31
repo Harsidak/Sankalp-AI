@@ -6,7 +6,6 @@ pydantic
 flask-limiter
 structlog
 tenacity
-pytest
-pytest-flask
-pytest-mock
+tenacity
+cachetools
 gunicorn

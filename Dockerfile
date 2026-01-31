@@ -16,5 +16,8 @@ EXPOSE 8080
 # Define environment variable
 ENV NAME Sankalp
 
-# Run with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "run:app"]
+# Run with Gunicorn (Optimized for Cloud Run)
+# Workers = 1 (Cloud Run handles scaling instances)
+# Threads = 8 (Handle concurrent requests per instance)
+# Timeout = 0 (Cloud Run handles timeouts)
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 run:app
