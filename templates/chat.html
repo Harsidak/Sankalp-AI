@@ -56,7 +56,7 @@
 
 {% block scripts %}
 <script type="module">
-    import { doc, getDoc, updateDoc } from "firebase/firestore";
+    import { doc, getDoc, updateDoc, setDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('sessionId');
@@ -74,16 +74,34 @@
     // Init
     window.addEventListener('userChanged', async (e) => {
         const user = e.detail.user;
-        if (!user || !sessionId) {
-            if (!sessionId) window.location.href = '/';
-            return;
+        if (!user) { window.location.href = '/'; return; }
+
+        if (!sessionId) {
+            // Start New Session
+            const newId = Date.now().toString();
+            const url = new URL(window.location);
+            url.searchParams.set('sessionId', newId);
+            window.history.replaceState({}, '', url);
+
+            sessionData = {
+                messages: [],
+                title: 'New Conversation',
+                createdAt: Date.now(),
+                selections: { language: 'en' } // Default
+            };
+            titleEl.textContent = "New Conversation";
+
+            // Create init doc
+            await setDoc(doc(window.db, 'users', user.uid, 'sessions', newId), sessionData);
+        } else {
+            await loadSession(user.uid, sessionId);
         }
-        await loadSession(user.uid, sessionId);
     });
 
-    // Fallback if already loaded
+    // Fallback
     if (window.currentUser) {
-        loadSession(window.currentUser.uid, sessionId);
+        // Trigger manually if event missed
+        window.dispatchEvent(new CustomEvent('userChanged', { detail: { user: window.currentUser } }));
     }
 
     async function loadSession(uid, sid) {
@@ -91,17 +109,45 @@
             const ref = doc(window.db, 'users', uid, 'sessions', sid);
             const snap = await getDoc(ref);
             if (!snap.exists()) {
-                window.location.href = '/';
+                // Session invalid?
+                window.location.href = '/chat';
                 return;
             }
             sessionData = snap.data();
-            titleEl.textContent = sessionData.title;
-            renderMessages(sessionData.messages);
+            titleEl.textContent = sessionData.title || "Conversation";
+            renderMessages(sessionData.messages || []);
             scrollToBottom();
         } catch (e) {
             console.error(e);
             addNotification("Error loading chat", "error");
         }
+    }
+
+    // --- CONTEXT FETCHER ---
+    async function getContext() {
+        if (!window.currentUser) return {};
+        const uid = window.currentUser.uid;
+        let context = { name: window.currentUser.displayName || 'Friend', streak: 0, mood: null };
+
+        try {
+            // Fetch Streak
+            const dashSnap = await getDoc(doc(window.db, 'users', uid, 'data', 'dashboard'));
+            if (dashSnap.exists()) {
+                context.streak = dashSnap.data().keyMetrics?.currentStreak || 0;
+            }
+
+            // Fetch Last Mood
+            const moodRef = collection(window.db, 'users', uid, 'mood_logs');
+            const q = query(moodRef, orderBy('createdAt', 'desc'), limit(1)); // Assuming createdAt or timestamp
+            // Note: In dashboard I used 'timestamp'
+            const q2 = query(moodRef, orderBy('timestamp', 'desc'), limit(1));
+            const moodSnap = await getDocs(q2);
+            if (!moodSnap.empty) {
+                const d = moodSnap.docs[0].data();
+                context.mood = { score: d.score, tags: d.tags };
+            }
+        } catch (e) { console.error("Context Error", e); }
+        return context;
     }
 
     function renderMessages(msgs) {
@@ -148,7 +194,8 @@
         appendMessage('user', text);
         scrollToBottom();
 
-        // Push user message to local state
+        // Push user message
+        if (!sessionData.messages) sessionData.messages = [];
         sessionData.messages.push({ author: 'user', text });
 
         // Typing indicator
@@ -165,12 +212,14 @@
         scrollToBottom();
 
         try {
+            const context = await getContext();
             const response = await fetch('/api/chat_stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: sessionData.messages,
-                    language: sessionData.selections.language
+                    language: sessionData.selections?.language || 'en',
+                    context: context
                 })
             });
 

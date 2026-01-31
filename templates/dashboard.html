@@ -176,7 +176,6 @@
             </div>
         </div>
 
-        <!-- 3. Daily Challenge -->
         <div
             class="glass-panel p-6 lg:col-span-6 flex flex-col relative overflow-hidden group hover:border-white/20 transition-all duration-500">
             <div class="flex justify-between items-center mb-6 z-10">
@@ -225,6 +224,144 @@
                 class="absolute right-0 bottom-0 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity duration-700">
                 <i
                     class="fa-solid fa-mountain-sun text-[150px] transform translate-x-10 translate-y-10 rotate-[-10deg]"></i>
+            </div>
+        </div>
+
+        <!-- NEW FOCUS ZONE (Pomodoro + Tasks) -->
+        <div class="glass-panel p-6 lg:col-span-8 min-h-[400px] flex flex-col relative group overflow-hidden">
+            <div class="flex justify-between items-center mb-6 z-10">
+                <div>
+                    <span
+                        class="text-[10px] font-bold text-text-secondary uppercase tracking-wider border border-white/10 px-2 py-1 rounded-full bg-black/20 backdrop-blur-md">Focus
+                        Zone</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Pomodoro & Tasks</h3>
+                </div>
+                <!-- Pomodoro Timer Display -->
+                <div class="flex items-center gap-4 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
+                    <div class="text-2xl font-mono font-bold text-white tracking-widest" id="pomo-timer">25:00</div>
+                    <button onclick="toggleTimer()" id="pomo-toggle"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                    <button onclick="resetTimer()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-4 relative z-10">
+                <!-- Add Task Input -->
+                <form id="task-form" class="flex gap-2">
+                    <input type="text" id="task-input" placeholder="Add a new task..."
+                        class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:bg-white/10 focus:border-accent-primary/50 outline-none transition-all">
+                    <button type="submit"
+                        class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/5 transition-colors">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Task List -->
+                <div id="task-list" class="flex-1 overflow-y-auto pr-2 space-y-2 max-h-[250px] custom-scrollbar">
+                    <!-- Tasks injected via JS -->
+                    <div class="text-center text-white/20 text-xs py-8">No tasks yet. Let's get to work!</div>
+                </div>
+            </div>
+
+            <!-- Decor -->
+            <div
+                class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+        </div>
+
+        <!-- NEW MOOD LOGGER (Compact) -->
+        <div
+            class="glass-panel p-6 lg:col-span-4 min-h-[200px] flex flex-col relative group justify-between hover:shadow-[0_0_30px_rgba(236,72,153,0.15)] transition-shadow">
+            <div>
+                <span
+                    class="text-[10px] font-bold text-text-secondary uppercase tracking-wider border border-white/10 px-2 py-1 rounded-full bg-black/20 backdrop-blur-md">Check-in</span>
+                <h3 class="text-xl font-bold text-white mt-1">How are you?</h3>
+                <p class="text-xs text-text-secondary mt-1">Log your mood to track your journey.</p>
+            </div>
+
+            <button onclick="openMoodModal()"
+                class="w-full py-3 mt-4 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/20 hover:border-pink-500/40 hover:from-pink-500/30 hover:to-purple-500/30 transition-all text-white font-medium flex items-center justify-center gap-2 group/btn">
+                <i class="fa-regular fa-face-smile text-pink-300 group-hover/btn:scale-110 transition-transform"></i>
+                Log Mood
+            </button>
+
+            <!-- Decor -->
+            <div
+                class="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-pink-500/10 blur-[60px] rounded-full pointer-events-none">
+            </div>
+        </div>
+
+        <!-- NEW FOCUS ZONE (Pomodoro + Tasks) -->
+        <div class="glass-panel p-6 lg:col-span-8 min-h-[400px] flex flex-col relative group overflow-hidden">
+            <div class="flex justify-between items-center mb-6 z-10">
+                <div>
+                    <span
+                        class="text-[10px] font-bold text-text-secondary uppercase tracking-wider border border-white/10 px-2 py-1 rounded-full bg-black/20 backdrop-blur-md">Focus
+                        Zone</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Pomodoro & Tasks</h3>
+                </div>
+                <!-- Pomodoro Timer Display -->
+                <div class="flex items-center gap-4 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
+                    <div class="text-2xl font-mono font-bold text-white tracking-widest" id="pomo-timer">25:00</div>
+                    <button onclick="toggleTimer()" id="pomo-toggle"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                    <button onclick="resetTimer()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-4 relative z-10">
+                <!-- Add Task Input -->
+                <form id="task-form" class="flex gap-2">
+                    <input type="text" id="task-input" placeholder="Add a new task..."
+                        class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/20 focus:bg-white/10 focus:border-accent-primary/50 outline-none transition-all">
+                    <button type="submit"
+                        class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/5 transition-colors">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Task List -->
+                <div id="task-list" class="flex-1 overflow-y-auto pr-2 space-y-2 max-h-[250px] custom-scrollbar">
+                    <!-- Tasks injected via JS -->
+                    <div class="text-center text-white/20 text-xs py-8">No tasks yet. Let's get to work!</div>
+                </div>
+            </div>
+
+            <!-- Decor -->
+            <div
+                class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+        </div>
+
+        <!-- NEW MOOD LOGGER (Compact) -->
+        <div
+            class="glass-panel p-6 lg:col-span-4 min-h-[200px] flex flex-col relative group justify-between hover:shadow-[0_0_30px_rgba(236,72,153,0.15)] transition-shadow">
+            <div>
+                <span
+                    class="text-[10px] font-bold text-text-secondary uppercase tracking-wider border border-white/10 px-2 py-1 rounded-full bg-black/20 backdrop-blur-md">Check-in</span>
+                <h3 class="text-xl font-bold text-white mt-1">How are you?</h3>
+                <p class="text-xs text-text-secondary mt-1">Log your mood to track your journey.</p>
+            </div>
+
+            <button onclick="openMoodModal()"
+                class="w-full py-3 mt-4 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/20 hover:border-pink-500/40 hover:from-pink-500/30 hover:to-purple-500/30 transition-all text-white font-medium flex items-center justify-center gap-2 group/btn">
+                <i class="fa-regular fa-face-smile text-pink-300 group-hover/btn:scale-110 transition-transform"></i>
+                Log Mood
+            </button>
+
+            <!-- Decor -->
+            <div
+                class="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-pink-500/10 blur-[60px] rounded-full pointer-events-none">
             </div>
         </div>
 
@@ -332,6 +469,46 @@
     </div>
 </div>
 
+
+<!-- Mood Modal -->
+<div id="mood-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 opacity-0"
+        id="mood-overlay" onclick="closeMoodModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm glass-panel p-6 transform scale-95 opacity-0 transition-all duration-300 ease-[cubic-bezier(0.19,1,0.22,1)]"
+        id="mood-content">
+        <h3 class="text-xl font-bold text-white mb-2">Log Daily Mood</h3>
+        <p class="text-xs text-text-secondary mb-6">How are you feeling right now?</p>
+
+        <div class="flex justify-between mb-2 px-2">
+            <span class="text-xs text-white/50">Low</span>
+            <span class="text-xs text-white/50">High</span>
+        </div>
+        <input type="range" min="1" max="10" value="5" id="mood-slider" class="w-full mb-6 accent-accent-primary">
+
+        <div class="flex flex-wrap gap-2 mb-6" id="mood-tags">
+            <!-- Tags generated by JS or static -->
+            <button onclick="toggleTag(this)"
+                class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors"
+                data-val="Anxious">Anxious</button>
+            <button onclick="toggleTag(this)"
+                class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors"
+                data-val="Calm">Calm</button>
+            <button onclick="toggleTag(this)"
+                class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors"
+                data-val="Stressed">Stressed</button>
+            <button onclick="toggleTag(this)"
+                class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors"
+                data-val="Happy">Happy</button>
+            <button onclick="toggleTag(this)"
+                class="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors"
+                data-val="Tired">Tired</button>
+        </div>
+
+        <button onclick="saveMood()" class="w-full btn-primary py-3 rounded-xl text-sm font-bold">Save Entry (+20
+            XP)</button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -339,7 +516,7 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
 <script type="module">
-    import { doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit } from "firebase/firestore";
+    import { doc, getDoc, setDoc, getDocs, collection, query, orderBy, limit, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
     import { signOut } from "firebase/auth";
 
     // --- Sidebar & Navigation Logic ---
@@ -739,6 +916,228 @@
         emotionChart.setOption(eOption);
     }
 
+
+    // --- TASK & POMODORO SYSTEM ---
+    let tasks = [];
+    const taskForm = document.getElementById('task-form');
+    const taskInput = document.getElementById('task-input');
+    const taskList = document.getElementById('task-list');
+
+    // Load Tasks
+    async function loadTasks() {
+        if (!window.currentUser) return;
+        const tasksRef = collection(window.db, 'users', window.currentUser.uid, 'tasks');
+        const q = query(tasksRef, orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        tasks = [];
+        snap.forEach(d => tasks.push({ id: d.id, ...d.data() }));
+        renderTasks();
+    }
+
+    function renderTasks() {
+        taskList.innerHTML = '';
+        if (tasks.length === 0) {
+            taskList.innerHTML = `<div class="text-center text-white/20 text-xs py-8">No tasks yet. Let's get to work!</div>`;
+            return;
+        }
+
+        tasks.forEach(task => {
+            const el = document.createElement('div');
+            el.className = `flex items-center justify-between p-3 rounded-xl border ${task.completed ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5 border-white/5'} hover:border-white/20 transition-all group`;
+            el.innerHTML = `
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <button onclick="toggleTask('${task.id}', ${task.completed})" class="w-5 h-5 rounded-full border ${task.completed ? 'bg-green-500 border-green-500' : 'border-white/30'} flex items-center justify-center hover:border-accent-primary transition-colors">
+                        ${task.completed ? '<i class="fa-solid fa-check text-[10px] text-black"></i>' : ''}
+                    </button>
+                    <span class="text-sm truncate ${task.completed ? 'line-through text-white/30' : 'text-white'}">${task.text}</span>
+                </div>
+                <button onclick="deleteTask('${task.id}')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity px-2">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            `;
+            taskList.appendChild(el);
+        });
+    }
+
+    if (taskForm) {
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if (!text || !window.currentUser) return;
+
+            // Optimistic UI
+            const tempId = Date.now().toString();
+            tasks.unshift({ id: tempId, text, completed: false, createdAt: Date.now() });
+            renderTasks();
+            taskInput.value = '';
+
+            try {
+                const docRef = await addDoc(collection(window.db, 'users', window.currentUser.uid, 'tasks'), {
+                    text,
+                    completed: false,
+                    createdAt: Date.now()
+                });
+                tasks[0].id = docRef.id; // Update ID
+            } catch (err) {
+                console.error(err);
+                addNotification("Failed to add task", "error");
+            }
+        });
+    }
+
+    window.toggleTask = async (id, currentStatus) => {
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            task.completed = !currentStatus;
+            renderTasks();
+            if (task.completed) {
+                addXP(10, "Task Completed");
+                addNotification("Task Complete! +10 XP", "success");
+            }
+        }
+
+        try {
+            await updateDoc(doc(window.db, 'users', window.currentUser.uid, 'tasks', id), {
+                completed: !currentStatus
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    window.deleteTask = async (id) => {
+        tasks = tasks.filter(t => t.id !== id);
+        renderTasks();
+        try {
+            await deleteDoc(doc(window.db, 'users', window.currentUser.uid, 'tasks', id));
+        } catch (err) { console.error(err); }
+    };
+
+
+    // --- POMODORO TIMER ---
+    let timerInterval;
+    let timeLeft = 25 * 60;
+    let isTimerRunning = false;
+    const timerEl = document.getElementById('pomo-timer');
+    const toggleBtn = document.getElementById('pomo-toggle');
+
+    window.toggleTimer = () => {
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            toggleBtn.innerHTML = '<i class="fa-solid fa-play text-xs"></i>';
+        } else {
+            isTimerRunning = true;
+            toggleBtn.innerHTML = '<i class="fa-solid fa-pause text-xs"></i>';
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-play text-xs"></i>';
+                    addNotification("Focus Session Complete! +50 XP", "success");
+                    addXP(50, "Focus Session");
+                    // Play sound?
+                }
+            }, 1000);
+        }
+    };
+
+    window.resetTimer = () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timeLeft = 25 * 60;
+        updateTimerDisplay();
+        toggleBtn.innerHTML = '<i class="fa-solid fa-play text-xs"></i>';
+    };
+
+    function updateTimerDisplay() {
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        timerEl.textContent = `${m}:${s}`;
+    }
+
+
+    // --- XP SYSTEM ---
+    async function addXP(amount, reason) {
+        if (!window.currentUser) return;
+        const userRef = doc(window.db, 'users', window.currentUser.uid, 'data', 'profile');
+
+        try {
+            const snap = await getDoc(userRef);
+            let currentXP = 0;
+            if (snap.exists() && snap.data().xp) {
+                currentXP = snap.data().xp;
+            }
+            const newXP = currentXP + amount;
+            await setDoc(userRef, { xp: newXP }, { merge: true });
+
+            // Check Level Up logic here if needed (e.g., every 1000 XP)
+            // For now just save
+        } catch (e) {
+            console.error("XP Error", e);
+        }
+    }
+
+
+    // --- MOOD MODAL ---
+    window.openMoodModal = () => {
+        const modal = document.getElementById('mood-modal');
+        const overlay = document.getElementById('mood-overlay');
+        const content = document.getElementById('mood-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            overlay.classList.remove('opacity-0');
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('scale-100');
+        }, 10);
+    };
+
+    window.closeMoodModal = () => {
+        const modal = document.getElementById('mood-modal');
+        const overlay = document.getElementById('mood-overlay');
+        const content = document.getElementById('mood-content');
+        overlay.classList.add('opacity-0');
+        content.classList.add('opacity-0', 'scale-95');
+        content.classList.remove('scale-100');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    };
+
+    let selectedTags = [];
+    window.toggleTag = (btn) => {
+        const val = btn.getAttribute('data-val');
+        if (selectedTags.includes(val)) {
+            selectedTags = selectedTags.filter(t => t !== val);
+            btn.classList.remove('bg-accent-primary', 'border-accent-primary');
+            btn.classList.add('bg-white/5', 'border-white/10');
+        } else {
+            selectedTags.push(val);
+            btn.classList.add('bg-accent-primary', 'border-accent-primary');
+            btn.classList.remove('bg-white/5', 'border-white/10');
+        }
+    };
+
+    window.saveMood = async () => {
+        const score = document.getElementById('mood-slider').value;
+        if (!window.currentUser) return;
+
+        try {
+            await addDoc(collection(window.db, 'users', window.currentUser.uid, 'mood_logs'), {
+                score: parseInt(score),
+                tags: selectedTags,
+                timestamp: Date.now()
+            });
+            addXP(20, "Mood Log");
+            addNotification("Mood Logged! +20 XP", "success");
+            closeMoodModal();
+        } catch (e) {
+            console.error(e);
+            addNotification("Failed to save mood", "error");
+        }
+    };
+
     // Complete Daily (Global)
     window.completeDaily = () => {
         const circle = document.getElementById('check-circle');
@@ -750,9 +1149,16 @@
         desc.classList.add('line-through', 'text-white/30');
         desc.classList.remove('text-white', 'group-hover/card:text-transparent');
         addNotification('Mission Complete! +50 XP', 'success');
+        addXP(50, "Daily Challenge"); // Added XP Call
         const streakEl = document.getElementById('streak-val');
         streakEl.textContent = parseInt(streakEl.textContent) + 1;
     };
+
+
+    // Init Tasks
+    window.addEventListener('userChanged', (e) => {
+        if (e.detail.user) loadTasks();
+    });
 
 </script>
 {% endblock %}

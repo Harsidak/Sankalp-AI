@@ -136,8 +136,21 @@ def chat_stream():
     language_code = data.get('language', 'en')
     language_name = get_language_name(language_code)
     
+    # Enhanced Context
+    context = data.get('context', {})
+    user_name = context.get('name', 'Friend')
+    mood_data = context.get('mood', {}) # {score, tags}
+    streak = context.get('streak', 0)
+    
     contents = []
-    system_instruction = SYSTEM_INSTRUCTION_TEMPLATE.format(language_name=language_name)
+    
+    # Dynamic System Instruction
+    base_instruction = SYSTEM_INSTRUCTION_TEMPLATE.format(language_name=language_name)
+    additional_context = f"\n\nUser Context:\n- Name: {user_name}\n- Current Streak: {streak} days\n"
+    if mood_data:
+        additional_context += f"- Recent Mood: {mood_data.get('score', '?')}/10 (Tags: {', '.join(mood_data.get('tags', []))})\n"
+    
+    final_instruction = base_instruction + additional_context
     
     for m in messages[:-1]:
         role = 'user' if m['author'] == 'user' else 'model'
@@ -145,7 +158,7 @@ def chat_stream():
         
     last_message = messages[-1]['text']
     
-    model = genai.GenerativeModel(model_name, system_instruction=system_instruction)
+    model = genai.GenerativeModel(model_name, system_instruction=final_instruction)
     
     def generate():
         try:
