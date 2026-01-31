@@ -16,5 +16,5 @@ EXPOSE 8080
 # Define environment variable
 ENV NAME Sankalp
 
-# Run server.py when the container launches
-CMD ["python", "server.py"]
+# Run with Gunicorn
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "run:app"]

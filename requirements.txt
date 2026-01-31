@@ -2,3 +2,11 @@ flask
 google-generativeai
 python-dotenv
 waitress
+pydantic
+flask-limiter
+structlog
+tenacity
+pytest
+pytest-flask
+pytest-mock
+gunicorn
