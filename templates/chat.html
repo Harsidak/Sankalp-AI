@@ -198,18 +198,22 @@
         if (!sessionData.messages) sessionData.messages = [];
         sessionData.messages.push({ author: 'user', text });
 
-        // Typing indicator
+        // Typing indicator with physics bounce
         const typingDiv = document.createElement('div');
         typingDiv.id = 'typing-indicator';
-        typingDiv.className = "flex justify-start animate-enter";
+        typingDiv.className = "flex justify-start animate-enter mb-2";
         typingDiv.innerHTML = `
-            <div class="border border-white/5 p-4 flex items-center gap-1.5 h-[54px] bg-white/5 text-gray-100 rounded-[24px] rounded-tl-sm backdrop-blur-md">
-                 <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce"></span>
-                 <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce delay-100"></span>
-                 <span class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce delay-200"></span>
+            <div class="border border-white/5 p-4 flex items-center gap-1.5 h-[50px] bg-white/5 text-gray-100 rounded-[24px] rounded-tl-sm backdrop-blur-md shadow-lg">
+                 <span class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce"></span>
+                 <span class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce delay-100"></span>
+                 <span class="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce delay-200"></span>
             </div>`;
         container.appendChild(typingDiv);
-        scrollToBottom();
+
+        // Smooth scroll to bottom
+        requestAnimationFrame(() => {
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        });
 
         // Award XP
         if (window.addXP) window.addXP(2, "Message Sent");
@@ -271,8 +275,14 @@
 
         } catch (err) {
             console.error(err);
-            addNotification('Error sending message', 'error');
             typingDiv.remove();
+
+            // Check if it's a rate limit error or network
+            if (err.message && err.message.includes('429')) {
+                addNotification('You are typing too fast. Please wait a moment.', 'error');
+            } else {
+                addNotification('Connection interrupted. Please try again.', 'error');
+            }
         } finally {
             sendBtn.disabled = !input.value.trim();
         }
