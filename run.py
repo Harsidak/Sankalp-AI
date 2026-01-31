@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='google.generativeai')
 from app import create_app
 from app.core.config import config
 from waitress import serve

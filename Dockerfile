@@ -14,10 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Define environment variable
-ENV NAME Sankalp
+ENV NAME=Sankalp
+ENV PYTHONUNBUFFERED=1
 
 # Run with Gunicorn (Optimized for Cloud Run)
 # Workers = 1 (Cloud Run handles scaling instances)
 # Threads = 8 (Handle concurrent requests per instance)
 # Timeout = 0 (Cloud Run handles timeouts)
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 run:app
+CMD ["sh", "-c", "exec gunicorn --bind :${PORT:-8080} --workers 1 --threads 8 --timeout 0 run:app"]
