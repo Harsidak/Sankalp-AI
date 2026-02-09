@@ -149,3 +149,28 @@ window.addXP = async (amount, reason) => {
         console.error("XP Error", e);
     }
 };
+
+// --- VISUALS & BACKGROUND ---
+import { FloatingLines } from './floating-lines.js';
+import './visuals.js'; // Runs its own DOMContentLoaded listener
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('background-canvas');
+    if (container) {
+        try {
+            // Initialize Floating Lines with Project Theme Colors
+            const floatingLines = new FloatingLines(container, {
+                lineCount: 8,
+                lineDistance: 5,
+                animationSpeed: 1,
+                interactive: true,
+                linesGradient: ['#6366f1', '#a855f7', '#3b82f6'], // Indigo-Purple-Blue
+                mixBlendMode: 'screen',
+                bendStrength: 2.5, // Stronger interaction
+                bendRadius: 6.0
+            });
+        } catch (err) {
+            console.error("Failed to init FloatingLines:", err);
+        }
+    }
+});
