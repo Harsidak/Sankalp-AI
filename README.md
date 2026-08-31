@@ -1,133 +1,114 @@
-# Sankalp: AI Mental Health Companion
+# SankalpAI
 
-**Sankalp** is a compassionate, AI-powered mental health assistant designed specifically for students and youth. It provides a safe, non-judgmental space to express feelings, track emotional well-being, and build resilience through gamified challenges.
+A mental-wellness companion: daily mood check-ins, a tagged journal, habit
+streaks, and an analytics dashboard built on top of all three.
 
-Built with a futuristic "Frosty Glass" UI, Sankalp combines advanced psychology with cutting-edge AI (Google Gemini) to offer real-time support in multiple languages.
+## Tech Stack
 
-## ✨ Key Features
+| Layer    | Technology                              |
+| -------- | --------------------------------------- |
+| Backend  | FastAPI (Python 3.11+), async SQLAlchemy |
+| Database | MySQL 8.0 (InnoDB, utf8mb4)             |
+| Frontend | React 19 + Vite                         |
+| Auth     | JWT access/refresh + Google OAuth 2.0   |
+| AI       | OpenAI / Google Gemini (pluggable)      |
 
-*   **🤖 Empathetic AI Chat**:
-    *   Powered by a **Custom Fine-Tuned Model on Vertex AI** (Specialized for Youth Mental Health).
-    *   Provides validation, coping strategies, and active listening.
-    *   **Multilingual Support**: Chat in English, Hindi, Spanish, French, and more.
-    *   **Smart Context**: Remembers your session context for meaningful conversations.
-
-*   **📊 Smart Dashboard**:
-    *   **Emotional Analytics**: Visual charts for mood trends and emotion breakdowns.
-    *   **Gamified Wellness**: Daily challenges ("Missions") with XP and streak tracking.
-    *   **Personalized Plans**: AI-generated wellness plans based on your current state.
-
-*   **🎨 Futuristic UI/UX**:
-    *   **Dynamic Visuals**: interactive 3D ASCII text effects and WebGL backgrounds.
-    *   **Glassmorphism Design**: Frosted glass panels, neon accents, and dark mode aesthetics.
-    *   **Smooth Animations**: iOS-style transitions and hover effects.
-    *   **Responsive**: Fully optimized for desktop and mobile devices.
-
-*   **🔐 Secure & Personal**:
-    *   **User Profiles**: Edit your bio, age, and details.
-    *   **History**: Save and revisit past conversations.
-    *   **Authentication**: Secure Google Sign-In and Anonymous Guest access via Firebase.
-
-## 🛠️ Tech Stack
-
-*   **Backend**: Python, Flask, Waitress (Production Server)
-*   **Frontend**: HTML5, Vanilla JavaScript, Tailwind CSS
-*   **Visuals**: Three.js (WebGL), Custom Canvas Effects
-*   **Database & Auth**: Firebase (Firestore, Authentication)
-*   **AI Engine**: Google Cloud Vertex AI (Custom Tuned Model)
-*   **Containerization**: Docker
-
-## 🚀 Getting Started
-
-Follow these instructions to run the project locally.
+## Quick Start
 
 ### Prerequisites
 
-*   Python 3.8 or higher (or Docker)
-*   A Google Cloud Project with **Vertex AI** access
-*   A **Firebase Project** (for Auth/Firestore)
+- Python 3.11+
+- Node.js 18+
+- MySQL 8.0 running locally
+- An OpenAI or Google AI key (only needed for `/ai/*` endpoints)
 
-### Installation
+### Backend
 
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/yourusername/Sankalp-AI.git
-    cd Sankalp-AI
-    ```
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+source .venv/bin/activate       # Linux/Mac
 
-2.  **Environment Setup**
-    Create a `.env` file in the root directory:
-    ```bash
-    GOOGLE_API_KEY=your_gemini_api_key_here
-    FIREBASE_API_KEY=your_firebase_api_key
-    # ... add other firebase config keys as needed based on server.py context injection
-    TUNED_MODEL_NAME=projects/.../locations/.../endpoints/... # Your Vertex AI Endpoint
-    ```
+pip install -r requirements.txt
+cp .env.example .env            # then edit DATABASE_URL and the secrets
 
-### Option A: Running with Docker (Recommended)
+python -m app.scripts.seed      # optional: demo account + 60 days of data
+uvicorn app.main:app --reload --port 8000
+```
 
-1.  **Build the Image**
-    ```bash
-    docker build -t sankalp-ai .
-    ```
+Tables are created on startup by `init_db()`. The seed script builds a demo
+account — `demo@sankalp.app` / `demo1234` — with 60 days of check-ins,
+journal entries, tags, habits, and logs. It is idempotent.
 
-2.  **Run the Container**
-    ```bash
-    docker run -p 8080:8080 --env-file .env sankalp-ai
-    ```
-    Access at `http://localhost:8080`
+### Frontend
 
-### Option B: Running Manually
+```bash
+cd frontend
+npm install
+cp .env.example .env
 
-1.  **Install Python Dependencies**
-    ```bash
-    # Create venv (Windows)
-    python -m venv venv
-    .\venv\Scripts\activate
+npm run dev
+```
 
-    # Install requirements
-    pip install -r requirements.txt
-    ```
+Vite proxies `/api` to `http://localhost:8000`, so the dev server works
+without CORS configuration.
 
-2.  **Run the Application**
-    ```bash
-    python server.py
-    ```
-    *Note: The server runs on `http://0.0.0.0:8080` by default using Waitress.*
+### Docker (full stack)
 
-3.  **Access the App**
-    Open your browser and navigate to: `http://localhost:8080`
+```bash
+cp .env.example .env
+docker-compose up --build
+```
 
-## 📂 Project Structure
+Compose brings up MySQL with a healthcheck; the backend waits for it.
+
+## Tests and Lint
+
+```bash
+cd backend  && pytest tests/           # single test: pytest tests/test_wellness.py::test_name
+cd frontend && npm run lint            # oxlint
+```
+
+The backend suite runs against SQLite rather than MySQL, with
+`PRAGMA foreign_keys=ON` so the cascade tests are meaningful.
+
+## API Documentation
+
+With the backend running:
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Project Structure
 
 ```
 Sankalp-AI/
-├── Dockerfile          # Docker Configuration
-├── server.py           # Main Flask Application & API Routes
-├── requirements.txt    # Python Dependencies
-├── .env                # Environment Variables (API Keys)
-├── templates/          # HTML Templates (Jinja2)
-│   ├── base.html       # Base layout with scripts/styles
-│   ├── landing.html    # Marketing Landing Page
-│   ├── dashboard.html  # User Dashboard
-│   └── chat.html       # Chat Interface
-└── static/
-    ├── css/
-    │   └── style.css   # Main Stylesheet (Glassmorphism theme)
-    └── js/
-        ├── ascii-text.js # 3D ASCII Text Effect (Three.js)
-        ├── main.js     # Firebase Init & Global Logic
-        └── visuals.js  # Visual Effects
+├── backend/            # FastAPI backend
+│   ├── app/
+│   │   ├── models/     # SQLAlchemy ORM (auth + wellness domain)
+│   │   ├── schemas/    # Pydantic request/response models
+│   │   ├── services/   # Business logic; routers never touch the DB
+│   │   ├── routers/    # HTTP endpoints
+│   │   └── scripts/    # seed.py
+│   ├── alembic/        # Migrations
+│   └── tests/
+├── frontend/           # React + Vite SPA
+│   └── src/            # api/, pages/, routes/, context/, hooks/
+└── docker-compose.yml
 ```
 
-## 🤝 Contributing
+## Database Schema
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to help improve Sankalp.
+Six wellness tables alongside the auth tables, all InnoDB/utf8mb4 with
+`ON DELETE CASCADE` down from `users`:
 
-## 📄 License
+- `checkins` — `UNIQUE(user_id, checkin_date)` enforces one per day
+- `journal_entries` / `tags` / `entry_tags` — a true many-to-many, the join
+  table keyed on the composite `(entry_id, tag_id)`
+- `habits` / `habit_logs` — `UNIQUE(habit_id, completed_date)`; completion is
+  row presence, so marking done is an insert and undoing it is a delete
 
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+## License
 
----
-
-*Disclaimer: Sankalp is an AI assistant and not a substitute for professional medical advice. If you are in crisis, please contact local emergency services.*
+MIT
