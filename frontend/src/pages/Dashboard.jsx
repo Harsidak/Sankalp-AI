@@ -241,6 +241,11 @@ export default function Dashboard() {
                     <h3>Mark habits</h3>
                     <p>Keep the streaks honest.</p>
                   </Link>
+                  <Link to="/insights" className="action-card">
+                    <span className="action-icon">◈</span>
+                    <h3>See the patterns</h3>
+                    <p>What actually moves your mood, measured.</p>
+                  </Link>
                   <Link to="/chat" className="action-card">
                     <span className="action-icon">✧</span>
                     <h3>Ask for a reflection</h3>

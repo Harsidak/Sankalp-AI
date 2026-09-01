@@ -11,9 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.dependencies import get_current_active_user
 from app.models.user import User
+from app.schemas.account import (
+    AccountExport,
+    DeleteAccountRequest,
+    DeleteAccountResult,
+)
 from app.schemas.common import APIResponse
 from app.schemas.user import ChangePasswordRequest, UserRead, UserUpdate
-from app.services import user_service
+from app.services import account_service, user_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -90,3 +95,49 @@ async def change_password(
         new_password=request.new_password,
     )
     return APIResponse(success=True, message="Password changed successfully")
+
+
+@router.get(
+    "/me/export",
+    response_model=APIResponse[AccountExport],
+    summary="Export every row this account owns",
+)
+async def export_account(
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    The whole account as one JSON document: check-ins, journal entries with
+    their tags, habits with their completed dates, and the tag list.
+
+    `counts` carries the row total per table so the export can be checked
+    against the database at a glance.
+    """
+    export = await account_service.export_account(db, user)
+    return APIResponse(success=True, data=export)
+
+
+@router.delete(
+    "/me",
+    response_model=APIResponse[DeleteAccountResult],
+    summary="Delete the account and all of its data",
+)
+async def delete_account(
+    data: DeleteAccountRequest,
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Permanently delete the account. This cannot be undone.
+
+    Deleting the user row is the entire operation: every wellness table
+    declares ON DELETE CASCADE against users.id, so the database removes
+    the dependent rows itself. The response reports what went with it,
+    counted immediately before the delete.
+    """
+    removed = await account_service.delete_account(db, user, data)
+    return APIResponse(
+        success=True,
+        data=DeleteAccountResult(deleted=True, removed=removed),
+        message="Account deleted",
+    )

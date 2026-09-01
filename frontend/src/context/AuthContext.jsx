@@ -119,6 +119,19 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  /**
+   * Re-reads the profile from the server. Settings calls this after saving,
+   * so the name in the navbar changes with the one in the form instead of
+   * waiting for a reload.
+   */
+  const refreshUser = useCallback(async () => {
+    const response = await authApi.getMe();
+    const user = response.data.data;
+    setStoredUser(user);
+    dispatch({ type: AUTH_ACTIONS.SET_USER, payload: user });
+    return user;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       const refreshToken = getRefreshToken();
@@ -140,8 +153,9 @@ export function AuthProvider({ children }) {
       signup,
       loginWithGoogle,
       logout,
+      refreshUser,
     }),
-    [state, login, signup, loginWithGoogle, logout]
+    [state, login, signup, loginWithGoogle, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

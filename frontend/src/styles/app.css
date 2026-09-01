@@ -7,6 +7,14 @@
 .chat-page,
 .notfound-page {
   min-height: 100svh;
+  /*
+   * `clip`, not `hidden`: the navbar's frosted backdrop is a ::before bled
+   * out to `inset: 0 -100vw`, which without a clipping ancestor stretched
+   * the document to twice its width and put a scrollbar under every
+   * authenticated page. `hidden` would also stop it, but it creates a
+   * scroll container, and that breaks the sticky navbar.
+   */
+  overflow-x: clip;
   background:
     radial-gradient(90% 60% at 80% -10%, var(--violet-50) 0%, transparent 55%),
     var(--bg);

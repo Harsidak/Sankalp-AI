@@ -16,7 +16,18 @@ from fastapi import FastAPI
 from app.config import get_settings
 from app.core.database import close_db, init_db
 from app.core.middleware import setup_middleware
-from app.routers import ai, auth, checkins, dashboard, habits, health, journal, tags, users
+from app.routers import (
+    ai,
+    auth,
+    checkins,
+    dashboard,
+    habits,
+    health,
+    insights,
+    journal,
+    tags,
+    users,
+)
 
 settings = get_settings()
 
@@ -94,6 +105,7 @@ def create_app() -> FastAPI:
     app.include_router(tags.router, prefix=api_prefix)
     app.include_router(habits.router, prefix=api_prefix)
     app.include_router(dashboard.router, prefix=api_prefix)
+    app.include_router(insights.router, prefix=api_prefix)
 
     return app
 

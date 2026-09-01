@@ -24,6 +24,8 @@ export const ROUTES = {
   CHECKIN: '/checkin',
   JOURNAL: '/journal',
   HABITS: '/habits',
+  INSIGHTS: '/insights',
+  SETTINGS: '/settings',
 };
 
 // API endpoints
@@ -39,6 +41,10 @@ export const ENDPOINTS = {
   USERS: {
     PROFILE: `${API_PREFIX}/users/me`,
     PASSWORD: `${API_PREFIX}/users/me/password`,
+    EXPORT: `${API_PREFIX}/users/me/export`,
+    // DELETE /users/me takes a confirmation body, so axios needs it under
+    // `data` in the request config rather than as a second argument.
+    ACCOUNT: `${API_PREFIX}/users/me`,
   },
   AI: {
     INFERENCE: `${API_PREFIX}/ai/inference`,
@@ -68,6 +74,9 @@ export const ENDPOINTS = {
   },
   DASHBOARD: {
     SUMMARY: `${API_PREFIX}/dashboard/summary`,
+  },
+  INSIGHTS: {
+    SUMMARY: `${API_PREFIX}/insights/summary`,
   },
   HEALTH: `${API_PREFIX}/health`,
 };

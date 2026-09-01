@@ -17,7 +17,8 @@ const unwrapPage = (res) => {
 };
 
 export const checkinApi = {
-  list: (params) => client.get(ENDPOINTS.CHECKINS.ROOT, { params }).then(unwrapPage),
+  /** Not paginated: the range is bounded by `days` (or start/end) instead. */
+  list: (params) => client.get(ENDPOINTS.CHECKINS.ROOT, { params }).then(unwrap),
   today: () => client.get(ENDPOINTS.CHECKINS.TODAY).then(unwrap),
   streak: () => client.get(ENDPOINTS.CHECKINS.STREAK).then(unwrap),
   create: (body) => client.post(ENDPOINTS.CHECKINS.ROOT, body).then(unwrap),
@@ -26,7 +27,15 @@ export const checkinApi = {
 };
 
 export const journalApi = {
-  list: (params) => client.get(ENDPOINTS.JOURNAL.ROOT, { params }).then(unwrapPage),
+  /**
+   * `indexes: null` matters: axios serialises arrays as `tag_ids[]=a&tag_ids[]=b`
+   * by default, and FastAPI reads a repeated `tag_ids=a&tag_ids=b` instead, so
+   * bracketed keys arrive as no filter at all rather than as an error.
+   */
+  list: (params) =>
+    client
+      .get(ENDPOINTS.JOURNAL.ROOT, { params, paramsSerializer: { indexes: null } })
+      .then(unwrapPage),
   get: (id) => client.get(ENDPOINTS.JOURNAL.ONE(id)).then(unwrap),
   create: (body) => client.post(ENDPOINTS.JOURNAL.ROOT, body).then(unwrap),
   update: (id, body) => client.put(ENDPOINTS.JOURNAL.ONE(id), body).then(unwrap),
@@ -53,4 +62,9 @@ export const tagApi = {
 export const dashboardApi = {
   summary: (days = 30) =>
     client.get(ENDPOINTS.DASHBOARD.SUMMARY, { params: { days } }).then(unwrap),
+};
+
+export const insightsApi = {
+  summary: (days = 30) =>
+    client.get(ENDPOINTS.INSIGHTS.SUMMARY, { params: { days } }).then(unwrap),
 };

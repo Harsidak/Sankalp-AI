@@ -3,10 +3,14 @@
  *
  * The frosted backdrop only appears once the page has scrolled, so the hero
  * reads as one uninterrupted canvas at rest.
+ *
+ * Signed in, the left cluster becomes the app's primary navigation; the
+ * marketing anchors are hash links into the landing page and only make
+ * sense signed out.
  */
 
 import { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ThemeContext } from '../../context/ThemeContext';
 import BrandMark from '../BrandMark';
@@ -14,6 +18,14 @@ import BrandMark from '../BrandMark';
 const PUBLIC_LINKS = [
   { to: '/#practice', label: 'The Practice' },
   { to: '/#how', label: 'How It Works' },
+];
+
+const APP_LINKS = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/checkin', label: 'Today' },
+  { to: '/journal', label: 'Journal' },
+  { to: '/habits', label: 'Habits' },
+  { to: '/insights', label: 'Insights' },
 ];
 
 export default function Navbar() {
@@ -35,23 +47,28 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`site-nav${isStuck ? ' is-stuck' : ''}`}>
+    <nav
+      className={`site-nav${isStuck ? ' is-stuck' : ''}${isAuthenticated ? ' is-app' : ''}`}
+    >
       <div className="nav-cluster is-left">
-        {isAuthenticated ? (
-          <>
-            <Link to="/dashboard" className="nav-link">Dashboard</Link>
-            <Link to="/chat" className="nav-link">Reflect</Link>
-          </>
-        ) : (
-          PUBLIC_LINKS.map((link) => (
-            <a key={link.to} href={link.to} className="nav-link">
-              {link.label}
-            </a>
-          ))
-        )}
+        {isAuthenticated
+          ? APP_LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => `nav-link${isActive ? ' is-current' : ''}`}
+              >
+                {link.label}
+              </NavLink>
+            ))
+          : PUBLIC_LINKS.map((link) => (
+              <a key={link.to} href={link.to} className="nav-link">
+                {link.label}
+              </a>
+            ))}
       </div>
 
-      <Link to="/" className="nav-brand">
+      <Link to={isAuthenticated ? '/dashboard' : '/'} className="nav-brand">
         <BrandMark className="mark" />
         Sankalp<span style={{ color: 'var(--brand)' }}>AI</span>
       </Link>
@@ -82,9 +99,18 @@ export default function Navbar() {
 
         {isAuthenticated ? (
           <>
-            <span className="nav-link" style={{ cursor: 'default' }}>
+            <NavLink
+              to="/chat"
+              className={({ isActive }) => `nav-link${isActive ? ' is-current' : ''}`}
+            >
+              Reflect
+            </NavLink>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `nav-link${isActive ? ' is-current' : ''}`}
+            >
               {user?.full_name?.split(' ')[0] || user?.email}
-            </span>
+            </NavLink>
             <button type="button" onClick={handleLogout} className="btn btn-outline btn-sm">
               Log out
             </button>

@@ -182,6 +182,11 @@ async def seed() -> None:
                 icon=icon,
                 color=color,
                 target_per_week=target,
+                # Backdated to the start of the window, because the logs below
+                # are. A habit created "now" with two months of history behind
+                # it is incoherent, and the insights queries measure a habit
+                # from when tracking began.
+                created_at=datetime.combine(start, datetime.min.time(), tzinfo=timezone.utc),
             )
             db.add(habit)
             await db.flush()
