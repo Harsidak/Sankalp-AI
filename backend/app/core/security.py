@@ -7,6 +7,7 @@ Tokens carry a 'type' claim to distinguish access vs refresh tokens.
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
+from uuid import uuid4
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -77,6 +78,12 @@ def create_refresh_token(
         "exp": expire,
         "iat": datetime.now(timezone.utc),
         "type": "refresh",
+        # A unique token id, because refresh tokens are stored hashed under a
+        # UNIQUE index. 'iat' and 'exp' are second-resolution, so two tokens
+        # issued to the same user inside one second would otherwise encode to
+        # the identical string — signing up and logging straight in raised a
+        # duplicate-key IntegrityError on exactly that path.
+        "jti": str(uuid4()),
     })
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 

@@ -2,7 +2,15 @@
  * API client constants and route paths.
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+/**
+ * Empty by default, so requests go out same-origin as `/api/v1/...`: Vite's
+ * proxy forwards them to the backend in dev, and in production the API is
+ * served from the same host. Pointing at http://localhost:8000 instead made
+ * every call cross-origin, which fails CORS the moment Vite picks a port other
+ * than the one in the backend's CORS_ORIGINS. Set VITE_API_BASE_URL only to
+ * talk to a backend on a genuinely different origin.
+ */
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 export const API_PREFIX = '/api/v1';
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
