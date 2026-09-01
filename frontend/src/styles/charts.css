@@ -1,0 +1,260 @@
+/**
+ * Panels and data display for the authenticated app.
+ *
+ * Chart colours live here rather than in the components, so the SVGs stay
+ * theme-aware for free: they paint with currentColor and CSS variables.
+ */
+
+.panel {
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-elevated);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+
+.panel-head h2 {
+  font-size: var(--step-1);
+}
+
+.panel-head p {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+  margin-top: var(--sp-1);
+}
+
+.panel-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--sp-5);
+}
+
+.panel-row .panel { margin-bottom: 0; }
+
+/* ---- Range switch ---- */
+
+.range-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+}
+
+.range-switch button {
+  padding: 0.3rem 0.85rem;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
+}
+
+.range-switch button.is-active {
+  background: var(--bg-solid);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- Line chart ---- */
+
+.chart svg {
+  width: 100%;
+  height: auto;
+  touch-action: none;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.chart-axis {
+  fill: var(--text-faint);
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+
+.chart-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-line.is-mood { stroke: var(--brand); }
+
+.chart-line.is-energy {
+  stroke: var(--accent-mint);
+  stroke-width: 2;
+  stroke-dasharray: 4 7;
+  opacity: 0.9;
+}
+
+.chart-dot {
+  fill: var(--brand);
+}
+
+.chart-cursor line {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.chart-cursor circle {
+  fill: var(--bg-solid);
+  stroke: var(--brand);
+  stroke-width: 3;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.chart-legend .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chart-legend .key::before {
+  content: '';
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.chart-legend .key.is-mood::before { background: var(--brand); }
+.chart-legend .key.is-energy::before { background: var(--accent-mint); }
+
+.chart-readout {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chart-empty {
+  padding: var(--sp-7) 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ---- Rings ---- */
+
+.ring-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-4);
+}
+
+.ring-item { text-align: center; }
+
+.ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.ring svg { display: block; }
+
+.ring-progress {
+  transition: stroke-dashoffset 0.9s var(--ease-out);
+}
+
+.ring-label {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  line-height: 1.1;
+}
+
+.ring-label strong {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+}
+
+.ring-label span {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.ring-name {
+  font-weight: 600;
+  margin-top: var(--sp-2);
+}
+
+.ring-meta {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+/* ---- Tag frequency bars ---- */
+
+.tag-bars {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.tag-bars li {
+  display: grid;
+  grid-template-columns: minmax(90px, auto) 1fr auto;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--step--1);
+}
+
+.tag-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.tag-name i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.tag-bar {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.tag-bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width 0.8s var(--ease-out);
+}
+
+.tag-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}

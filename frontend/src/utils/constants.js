@@ -13,6 +13,9 @@ export const ROUTES = {
   SIGNUP: '/signup',
   DASHBOARD: '/dashboard',
   CHAT: '/chat',
+  CHECKIN: '/checkin',
+  JOURNAL: '/journal',
+  HABITS: '/habits',
 };
 
 // API endpoints
@@ -34,11 +37,29 @@ export const ENDPOINTS = {
     STREAM: `${API_PREFIX}/ai/stream`,
     MODELS: `${API_PREFIX}/ai/models`,
     EMBEDDINGS: `${API_PREFIX}/ai/embeddings`,
+    REFLECT: `${API_PREFIX}/ai/reflect`,
   },
-  RAG: {
-    DOCUMENTS: `${API_PREFIX}/rag/documents`,
-    QUERY: `${API_PREFIX}/rag/query`,
-    QUERY_STREAM: `${API_PREFIX}/rag/query/stream`,
+  CHECKINS: {
+    ROOT: `${API_PREFIX}/checkins`,
+    TODAY: `${API_PREFIX}/checkins/today`,
+    STREAK: `${API_PREFIX}/checkins/streak`,
+    ONE: (id) => `${API_PREFIX}/checkins/${id}`,
+  },
+  JOURNAL: {
+    ROOT: `${API_PREFIX}/journal`,
+    ONE: (id) => `${API_PREFIX}/journal/${id}`,
+  },
+  HABITS: {
+    ROOT: `${API_PREFIX}/habits`,
+    ONE: (id) => `${API_PREFIX}/habits/${id}`,
+    LOG: (id) => `${API_PREFIX}/habits/${id}/log`,
+  },
+  TAGS: {
+    ROOT: `${API_PREFIX}/tags`,
+    ONE: (id) => `${API_PREFIX}/tags/${id}`,
+  },
+  DASHBOARD: {
+    SUMMARY: `${API_PREFIX}/dashboard/summary`,
   },
   HEALTH: `${API_PREFIX}/health`,
 };

@@ -91,28 +91,53 @@ async def get_streak(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    How many days in a row the user has checked in, anchored on today or
-    yesterday so an unfinished today does not read as a broken streak.
+    The current run of consecutive check-in days, anchored on today or
+    yesterday so an unfinished today does not read as a broken streak, plus
+    the longest run anywhere in the last year.
     """
     checkins = await checkin_service.list_recent(db, user.id, days=365)
     days = {c.checkin_date for c in checkins}
 
     today = date.today()
+
+    # Longest run anywhere in the history, not just the one ending today.
+    longest = 0
+    for day in days:
+        if (day - timedelta(days=1)) in days:
+            continue  # not the start of a run
+        run = 0
+        cursor = day
+        while cursor in days:
+            run += 1
+            cursor += timedelta(days=1)
+        longest = max(longest, run)
+
     if today in days:
         cursor = today
     elif (today - timedelta(days=1)) in days:
         cursor = today - timedelta(days=1)
     else:
-        return APIResponse(success=True, data={"streak": 0, "checked_in_today": False})
+        return APIResponse(
+            success=True,
+            data={
+                "current_streak": 0,
+                "longest_streak": longest,
+                "checked_in_today": False,
+            },
+        )
 
-    streak = 0
+    current = 0
     while cursor in days:
-        streak += 1
+        current += 1
         cursor -= timedelta(days=1)
 
     return APIResponse(
         success=True,
-        data={"streak": streak, "checked_in_today": today in days},
+        data={
+            "current_streak": current,
+            "longest_streak": longest,
+            "checked_in_today": today in days,
+        },
     )
 
 

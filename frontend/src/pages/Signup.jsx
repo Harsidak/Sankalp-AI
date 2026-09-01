@@ -6,12 +6,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { validateEmail, validatePassword, validateName } from '../utils/validators';
-import Navbar from '../components/layout/Navbar';
+import AuthAside from '../components/layout/AuthAside';
 import { GOOGLE_CLIENT_ID } from '../utils/constants';
 
 export default function Signup() {
   const navigate = useNavigate();
-  const { signup, loginWithGoogle } = useAuth();
+  const { signup } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -72,11 +72,11 @@ export default function Signup() {
 
   return (
     <div className="auth-page">
-      <Navbar />
+      <AuthAside line="Begin" sub="the practice." />
       <div className="auth-container">
         <div className="auth-card">
-          <h1>Create Account</h1>
-          <p className="auth-subtitle">Start using SanKalp today</p>
+          <h1>Create your account</h1>
+          <p className="auth-subtitle">One check-in is enough to start.</p>
 
           {error && <div className="alert alert-error">{error}</div>}
 

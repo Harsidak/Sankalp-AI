@@ -1,0 +1,130 @@
+/**
+ * Design tokens.
+ *
+ * Three layers: primitives (raw values, never used directly in components),
+ * semantic (what a colour means), and component-level overrides. Dark mode
+ * redefines only the semantic layer, so nothing downstream has to know.
+ */
+
+:root {
+  /* ---- Primitives: violet ramp ---- */
+  --violet-50: #f4f2ff;
+  --violet-100: #ece9fe;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-400: #a78bfa;
+  --violet-500: #8b5cf6;
+  --violet-600: #7c3aed;
+  --violet-700: #6528d9;
+  --violet-800: #4c1d95;
+  --violet-900: #2e1a7a;
+  --violet-950: #1a1147;
+
+  /* ---- Primitives: neutral ramp (violet-tinted) ---- */
+  --ink-50: #f8f7fc;
+  --ink-100: #efedf7;
+  --ink-200: #ddd9ec;
+  --ink-300: #bdb7d4;
+  --ink-400: #8b83a8;
+  --ink-500: #635b80;
+  --ink-600: #47405e;
+  --ink-700: #322c45;
+  --ink-800: #1e1930;
+  --ink-900: #120f1f;
+
+  /* ---- Primitives: mood accents (used by charts + check-ins) ---- */
+  --mood-1: #e8788a;
+  --mood-2: #e9a06a;
+  --mood-3: #dcc464;
+  --mood-4: #7fc08a;
+  --mood-5: #56b6c2;
+  --accent-mint: #6fe0c2;
+  --accent-peach: #ffb59b;
+
+  /* ---- Semantic: surfaces ---- */
+  --bg: var(--violet-100);
+  --bg-elevated: rgba(255, 255, 255, 0.72);
+  --bg-solid: #ffffff;
+  --bg-sunken: var(--violet-50);
+  --border: rgba(46, 26, 122, 0.12);
+  --border-strong: rgba(46, 26, 122, 0.24);
+
+  /* ---- Semantic: text ---- */
+  --text: var(--ink-900);
+  --text-muted: var(--ink-500);
+  --text-faint: var(--ink-400);
+  --text-inverse: #ffffff;
+
+  /* ---- Semantic: brand ---- */
+  --brand: var(--violet-600);
+  --brand-deep: var(--violet-900);
+  --brand-soft: var(--violet-200);
+  --brand-glow: rgba(124, 58, 237, 0.4);
+
+  /* ---- Semantic: feedback ---- */
+  --danger: #d64560;
+  --danger-soft: rgba(214, 69, 96, 0.12);
+  --success: #2f9e6e;
+  --success-soft: rgba(47, 158, 110, 0.12);
+
+  /* ---- Type ---- */
+  --font-display: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.85rem);
+  --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1rem);
+  --step-1: clamp(1.1rem, 1rem + 0.5vw, 1.3rem);
+  --step-2: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+  --step-3: clamp(1.9rem, 1.5rem + 2vw, 2.9rem);
+  --step-4: clamp(2.6rem, 1.8rem + 3.6vw, 4.4rem);
+
+  /* ---- Space (4px base) ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+  --sp-9: 6rem;
+
+  /* ---- Radius + elevation ---- */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(26, 17, 71, 0.06), 0 2px 8px rgba(26, 17, 71, 0.04);
+  --shadow-md: 0 4px 12px rgba(26, 17, 71, 0.08), 0 12px 32px rgba(26, 17, 71, 0.06);
+  --shadow-lg: 0 12px 28px rgba(26, 17, 71, 0.12), 0 32px 64px rgba(26, 17, 71, 0.1);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --shell-max: 1240px;
+}
+
+:root.dark {
+  --bg: #0d0a1c;
+  --bg-elevated: rgba(30, 25, 48, 0.72);
+  --bg-solid: #17122b;
+  --bg-sunken: #0a0817;
+  --border: rgba(196, 181, 253, 0.14);
+  --border-strong: rgba(196, 181, 253, 0.28);
+
+  --text: #f3f0ff;
+  --text-muted: #a79fc4;
+  --text-faint: #6f6790;
+  --text-inverse: #120f1f;
+
+  --brand: var(--violet-400);
+  --brand-deep: var(--violet-200);
+  --brand-soft: rgba(139, 92, 246, 0.22);
+  --brand-glow: rgba(167, 139, 250, 0.45);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.5), 0 32px 64px rgba(0, 0, 0, 0.35);
+}
