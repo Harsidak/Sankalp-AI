@@ -41,6 +41,10 @@
   --accent-mint: #6fe0c2;
   --accent-peach: #ffb59b;
 
+  /* Nav height is a token because the hero offsets itself by exactly this
+     much to run its background plate up underneath the bar. */
+  --nav-h: 4.25rem;
+
   /* ---- Semantic: surfaces ---- */
   --bg: var(--violet-100);
   --bg-elevated: rgba(255, 255, 255, 0.72);

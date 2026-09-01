@@ -10,6 +10,25 @@
     />
     <meta name="theme-color" content="#ECE9FE" />
     <title>SankalpAI — Clarity That Powers Your Calm</title>
+    <!--
+      The hero background is the largest paint on the landing page, so it is
+      requested alongside the stylesheet rather than after it. Split by media so
+      only one of the two plates is ever fetched.
+    -->
+    <link
+      rel="preload"
+      as="image"
+      href="/LightBackground.webp"
+      type="image/webp"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/DarkBackground.webp"
+      type="image/webp"
+      media="(prefers-color-scheme: dark)"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

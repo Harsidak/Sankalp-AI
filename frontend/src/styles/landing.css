@@ -11,9 +11,7 @@
   /* clip, not hidden: overflow-x:hidden would make this a scroll container and
      silently break the sticky nav inside it. */
   overflow-x: clip;
-  background:
-    radial-gradient(120% 80% at 50% 0%, var(--violet-50) 0%, transparent 60%),
-    var(--bg);
+  background: var(--bg);
 }
 
 /* =========================================================
@@ -30,15 +28,15 @@
   gap: var(--sp-4);
   width: min(100% - 2.5rem, 1360px);
   margin-inline: auto;
-  padding: var(--sp-4) 0;
+  height: var(--nav-h);
 }
 
 .site-nav::before {
   content: '';
   position: absolute;
   inset: 0 -100vw;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg) 58%, transparent);
+  backdrop-filter: blur(10px);
   opacity: 0;
   transition: opacity 0.35s var(--ease-out);
   pointer-events: none;
@@ -135,65 +133,58 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: calc(100svh - 82px);
-  padding-bottom: var(--sp-7);
+  margin-top: calc(-1 * var(--nav-h));
+  padding-top: var(--nav-h);
+  min-height: 100svh;
+  padding-bottom: var(--sp-6);
   overflow: hidden;
 }
 
-/* Layer 0 — atmospheric wash */
+/* Layer 0 — the atmospheric field.
+   A generated gradient plate rather than the three blurred blobs this used to
+   be. Those were complementary hues (violet, peach, mint) at blur(90px), and
+   where they crossed they averaged toward brown and sage instead of reading as
+   one wash. The plate is 65 KB, paints once instead of compositing three
+   full-viewport blur layers per frame, and carries a grain that blur cannot. */
 .hero-wash {
   position: absolute;
-  inset: -20% -10% 0;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-image: url('/LightBackground.webp');
+  background-size: cover;
+  /* Biased above centre: the plate's glow is what should sit behind the orb,
+     and cover crops from the bottom first on tall viewports. */
+  background-position: 50% 38%;
 }
 
-.hero-wash span {
+:root.dark .hero-wash {
+  background-image: url('/DarkBackground.webp');
+}
+
+/* The plate is at its most saturated along the bottom edge, which is exactly
+   where the lede and CTA sit. This scrim fades it into the page background so
+   the copy keeps its contrast, without flattening the field behind the orb. */
+.hero-wash::after {
+  content: '';
   position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.55;
-  animation: drift 22s var(--ease-in-out) infinite alternate;
-}
-
-.hero-wash span:nth-child(1) {
-  width: 48vw;
-  height: 48vw;
-  left: 4%;
-  top: 22%;
-  background: var(--violet-300);
-}
-
-.hero-wash span:nth-child(2) {
-  width: 38vw;
-  height: 38vw;
-  right: 2%;
-  top: 8%;
-  background: var(--accent-peach);
-  opacity: 0.28;
-  animation-delay: -7s;
-}
-
-.hero-wash span:nth-child(3) {
-  width: 32vw;
-  height: 32vw;
-  left: 42%;
-  bottom: -10%;
-  background: var(--accent-mint);
-  opacity: 0.22;
-  animation-delay: -13s;
-}
-
-@keyframes drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(3vw, -4vh, 0) scale(1.12); }
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 42%,
+    color-mix(in srgb, var(--bg) 45%, transparent) 72%,
+    color-mix(in srgb, var(--bg) 85%, transparent) 91%,
+    /* Fully opaque at the last stop, or the plate ends on a hard edge against
+       the section below it. */
+    var(--bg) 100%
+  );
 }
 
 /* The stage holds the word and the orb */
 .hero-stage {
   position: relative;
   flex: 1;
-  min-height: 46vh;
+  min-height: 38vh;
   display: grid;
   place-items: center;
 }
@@ -236,16 +227,18 @@
 .hero-echo {
   position: absolute;
   left: 50%;
-  bottom: 4%;
+  /* Sits inside the orb's band, not below it. At 4% it cleared the stage and
+     collided with the lede in .hero-foot, which is pulled up by -6vh. */
+  bottom: 16%;
   z-index: 1;
   transform: translateX(-50%);
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 9vw, 8rem);
+  font-size: clamp(1.6rem, 6.4vw, 5.4rem);
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1;
   white-space: nowrap;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.5);
   user-select: none;
 }
 
@@ -255,8 +248,8 @@
 .hero-orb {
   position: relative;
   z-index: 2;
-  width: clamp(280px, 42vw, 560px);
-  margin-top: 6vh;
+  width: clamp(260px, 34vw, 460px);
+  margin-top: 2vh;
   will-change: transform;
 }
 

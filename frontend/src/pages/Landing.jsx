@@ -105,11 +105,7 @@ export default function Landing() {
 
       {/* ============ Hero ============ */}
       <header className="hero">
-        <div className="hero-wash">
-          <span />
-          <span />
-          <span />
-        </div>
+        <div className="hero-wash" aria-hidden="true" />
 
         <div className="hero-stage">
           <h1 className="hero-mega">SANKALP</h1>
