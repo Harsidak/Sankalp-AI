@@ -102,8 +102,9 @@ export default function Insights() {
                 <div>
                   <h2>Mood, with and without each habit</h2>
                   <p>
-                    Average mood on the days you kept it, against the days you did not.
-                    Only days you checked in are counted.
+                    Average mood on the days you kept it, against the days you did not —
+                    counting only days you checked in. A habit with very few days on one
+                    side still shows its numbers, but is too thin to headline.
                   </p>
                 </div>
               </div>

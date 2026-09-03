@@ -107,3 +107,51 @@ async def test_health_check(client: AsyncClient):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] in ("healthy", "degraded")
+
+
+@pytest.mark.asyncio
+async def test_refresh_rotates_tokens_when_the_row_is_reloaded(client, db_session):
+    """
+    Regression: refresh returned 500, not a new token pair.
+
+    `expire_all` is the entire point of this test. A RefreshToken created
+    and checked inside one session is served from the identity map with the
+    timezone-aware value it was constructed with, so the expiry comparison
+    never sees what the database actually returns. Expiring the session
+    forces a real read -- and MySQL and SQLite both hand back a *naive*
+    datetime even from DateTime(timezone=True), which made
+    `expires_at < datetime.now(timezone.utc)` raise TypeError.
+    """
+    register = await client.post(
+        "/api/v1/auth/register",
+        json={"email": "rotate@example.com", "password": "TestPass123"},
+    )
+    original = register.json()["data"]["refresh_token"]
+
+    db_session.expire_all()
+
+    response = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": original}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["refresh_token"] != original
+
+
+@pytest.mark.asyncio
+async def test_refresh_rejects_a_rotated_token(client, db_session):
+    """Rotation revokes the old token, so replaying it must fail as auth."""
+    register = await client.post(
+        "/api/v1/auth/register",
+        json={"email": "replay@example.com", "password": "TestPass123"},
+    )
+    original = register.json()["data"]["refresh_token"]
+
+    await client.post("/api/v1/auth/refresh", json={"refresh_token": original})
+    db_session.expire_all()
+
+    response = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": original}
+    )
+
+    assert response.status_code == 401

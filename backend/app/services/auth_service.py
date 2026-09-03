@@ -38,6 +38,25 @@ def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def _as_utc(value: datetime) -> datetime:
+    """
+    Read a stored timestamp back as timezone-aware UTC.
+
+    MySQL's DATETIME carries no offset, so a column declared
+    `DateTime(timezone=True)` still hands back a *naive* datetime -- and the
+    same is true of SQLite. Everything is written as UTC, so attaching the
+    offset on read is correct rather than a guess.
+
+    Without this, comparing a freshly-loaded expiry against
+    `datetime.now(timezone.utc)` raises "can't compare offset-naive and
+    offset-aware datetimes". The bug hid in tests because a token created
+    and checked inside one session is served from the identity map with the
+    original aware value; only a fresh request, which re-reads the row, hits
+    the naive one.
+    """
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 def _create_token_pair(user_id: str) -> TokenResponse:
     """Generate an access/refresh token pair for a user."""
     access_token = create_access_token(data={"sub": str(user_id)})
@@ -154,7 +173,7 @@ async def refresh_access_token(
     if not stored_token:
         raise AuthenticationError("Refresh token has been revoked")
 
-    if stored_token.expires_at < datetime.now(timezone.utc):
+    if _as_utc(stored_token.expires_at) < datetime.now(timezone.utc):
         raise AuthenticationError("Refresh token has expired")
 
     # Rotate: revoke old token, issue new pair
