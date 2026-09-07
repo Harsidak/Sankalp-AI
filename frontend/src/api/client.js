@@ -45,6 +45,54 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+/**
+ * Exchange the refresh token for a new pair, or join the exchange already in
+ * flight.
+ *
+ * This is exported because the SSE stream in `api/ai.js` uses `fetch`, not
+ * axios, so it never passes through the interceptor below and has to ask for
+ * a refresh itself. It MUST share this single-flight lock rather than call
+ * the endpoint directly: refresh tokens rotate and the old one is revoked
+ * server-side, so two concurrent refreshes mean the loser presents a revoked
+ * token and the user is logged out mid-demo.
+ *
+ * @returns {Promise<string>} the new access token
+ */
+export async function refreshAccessToken() {
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+  try {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token');
+    }
+
+    // Plain `axios`, not `client` — going through the instance would re-enter
+    // this interceptor on failure and recurse.
+    const response = await axios.post(
+      `${API_BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
+      { refresh_token: refreshToken }
+    );
+
+    const { access_token, refresh_token: newRefreshToken } = response.data.data;
+    setTokens(access_token, newRefreshToken);
+    processQueue(null, access_token);
+    return access_token;
+  } catch (refreshError) {
+    processQueue(refreshError, null);
+    clearAll();
+    window.location.href = '/login';
+    throw refreshError;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -60,46 +108,14 @@ client.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (isRefreshing) {
-      // Queue the request while refresh is in progress
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return client(originalRequest);
-      });
-    }
-
     originalRequest._retry = true;
-    isRefreshing = true;
-
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-      clearAll();
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
 
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
-        { refresh_token: refreshToken }
-      );
-
-      const { access_token, refresh_token: newRefreshToken } = response.data.data;
-      setTokens(access_token, newRefreshToken);
-
-      processQueue(null, access_token);
-
-      originalRequest.headers.Authorization = `Bearer ${access_token}`;
+      const token = await refreshAccessToken();
+      originalRequest.headers.Authorization = `Bearer ${token}`;
       return client(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
-      clearAll();
-      window.location.href = '/login';
       return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
   }
 );

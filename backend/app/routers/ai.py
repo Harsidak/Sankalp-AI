@@ -27,6 +27,27 @@ from app.services.ai_service import get_available_models, get_provider
 router = APIRouter(prefix="/ai", tags=["AI"])
 
 
+# The companion's persona. It lives here, not in the browser, for two reasons:
+# a client-supplied persona can be rewritten in devtools, and the safety lines
+# (no diagnosis, no medication, escalate on crisis) are the part of this app
+# that must not be user-editable.
+_COMPANION_SYSTEM_PROMPT = (
+    "You are SanKalp, a wellness companion inside a mood-and-habit journalling "
+    "app. Be warm, concrete and brief -- usually under 120 words. Reflect what "
+    "the person is feeling before offering anything. Suggest at most one small "
+    "next step, and only when it is wanted.\n"
+    "You are not a clinician: never diagnose, never discuss medication, and "
+    "never present yourself as therapy. If someone describes self-harm, abuse, "
+    "or a crisis, say plainly that this is beyond what you can help with and "
+    "encourage them to contact a local crisis line or someone they trust."
+)
+
+
+def _history_of(request: InferenceRequest) -> list[dict]:
+    """Prior turns as plain dicts, which is what the provider layer expects."""
+    return [turn.model_dump() for turn in request.history]
+
+
 @router.post(
     "/inference",
     response_model=APIResponse[InferenceResponse],
@@ -43,10 +64,11 @@ async def inference(
     provider = get_provider(request.provider)
     result = await provider.generate(
         prompt=request.prompt,
-        system_prompt=request.system_prompt,
+        system_prompt=request.system_prompt or _COMPANION_SYSTEM_PROMPT,
         model=request.model,
         max_tokens=request.max_tokens,
         temperature=request.temperature,
+        history=_history_of(request),
     )
     return APIResponse(
         success=True,
@@ -72,10 +94,11 @@ async def stream_inference(
         try:
             async for token in provider.stream(
                 prompt=request.prompt,
-                system_prompt=request.system_prompt,
+                system_prompt=request.system_prompt or _COMPANION_SYSTEM_PROMPT,
                 model=request.model,
                 max_tokens=request.max_tokens,
                 temperature=request.temperature,
+                history=_history_of(request),
             ):
                 yield {
                     "event": "token",

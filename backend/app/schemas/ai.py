@@ -2,17 +2,27 @@
 AI inference request/response schemas.
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
+
+
+class ChatTurn(BaseModel):
+    """One prior turn of a conversation, replayed to give the model context."""
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1, max_length=10000)
 
 
 class InferenceRequest(BaseModel):
     """Request for AI text generation."""
     prompt: str = Field(..., min_length=1, max_length=10000)
+    # Prior turns, oldest first. The API is stateless, so the client replays
+    # context on each call; capped so a long chat cannot blow the context
+    # window or the token budget.
+    history: list[ChatTurn] = Field(default_factory=list, max_length=20)
     system_prompt: Optional[str] = Field(None, max_length=5000)
     model: Optional[str] = None  # Override default model
-    provider: Optional[str] = None  # Override default provider ("openai" or "gemini")
+    provider: Optional[str] = None  # Override default provider ("nvidia", "openai", "gemini")
     max_tokens: int = Field(1024, ge=1, le=8192)
     temperature: float = Field(0.7, ge=0.0, le=2.0)
     stream: bool = False
@@ -56,3 +66,4 @@ class ModelInfo(BaseModel):
     description: Optional[str] = None
     max_tokens: int
     supports_streaming: bool = True
+    is_default: bool = False

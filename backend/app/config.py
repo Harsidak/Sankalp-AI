@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     # --- AI / LLM ---
     openai_api_key: Optional[str] = None
     google_api_key: Optional[str] = None
+
+    # NVIDIA NIM speaks the OpenAI wire format, so it needs no SDK of its own --
+    # only a key and a base URL. Kept as separate settings rather than
+    # overloading openai_api_key so both providers can be configured at once.
+    nvidia_api_key: Optional[str] = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
+
     default_llm_provider: str = "openai"
     default_llm_model: str = "gpt-4o-mini"
 

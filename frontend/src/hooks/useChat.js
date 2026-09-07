@@ -2,7 +2,7 @@
  * Chat hook for managing AI chat sessions with streaming support.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiApi } from '../api/ai';
 
 export function useChat() {
@@ -10,8 +10,29 @@ export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const controllerRef = useRef(null);
 
+  // The message list is also the request context, so `sendMessage` reads it
+  // through a ref rather than closing over it -- otherwise the callback would
+  // be re-created on every streamed token, defeating the memoisation it
+  // exists for. The ref is synced in an effect, not during render: writing a
+  // ref while rendering is a side effect and React may discard that render.
+  // `sendMessage` only ever runs from a user event, long after paint, so the
+  // effect has always committed by then.
+  const messagesRef = useRef([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   const sendMessage = useCallback(
     async (prompt, options = {}) => {
+      // Prior turns, oldest first. Streaming placeholders and failed turns are
+      // excluded: replaying an empty or errored assistant message would teach
+      // the model that blank replies are acceptable. Capped to the last 20 to
+      // match the server-side limit.
+      const history = messagesRef.current
+        .filter((m) => m.content && !m.isError && !m.isStreaming)
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+
       // Add user message
       const userMessage = {
         id: Date.now(),
@@ -36,6 +57,7 @@ export function useChat() {
       controllerRef.current = aiApi.stream(
         {
           prompt,
+          history,
           system_prompt: options.systemPrompt,
           model: options.model,
           provider: options.provider,
