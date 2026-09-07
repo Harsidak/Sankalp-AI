@@ -501,16 +501,12 @@ _MODEL_CATALOGUE: list[tuple[str, dict]] = [
         "description": "Open-weight, lowest latency of the tested set",
         "max_tokens": 4096, "supports_streaming": True,
     }),
-    ("nvidia_api_key", {
-        "name": "deepseek-ai/deepseek-v4-flash-0731", "provider": "nvidia",
-        "description": "DeepSeek V4 Flash — stronger, noticeably slower",
-        "max_tokens": 8192, "supports_streaming": True,
-    }),
-    ("nvidia_api_key", {
-        "name": "deepseek-ai/deepseek-v4-pro-0813", "provider": "nvidia",
-        "description": "DeepSeek V4 Pro — highest quality, slowest; not for live demo",
-        "max_tokens": 8192, "supports_streaming": True,
-    }),
+    # The two DeepSeek V4 models on this endpoint were measured and then
+    # deliberately left out of the catalogue: v4-pro took 210s and v4-flash
+    # 655s to their first token on the free tier (correct answers, just
+    # queued behind other tenants). That is far past the client's 60s read
+    # timeout, so advertising them would offer the user a model that can
+    # only ever fail. They still work if passed explicitly as `model`.
     ("google_api_key", {
         "name": "gemini-1.5-flash", "provider": "gemini",
         "description": "Fast Gemini model for most tasks",
