@@ -75,6 +75,20 @@ ENTRIES = [
     ("Presentation done", "Nervous beforehand, fine during, relieved after. The usual sequence.", ["study"]),
 ]
 
+# One entry per day for the last 7 days specifically, so the demo always
+# has a full recent week of journal activity to show even though the
+# older ENTRIES above are scattered randomly across the full window.
+# day_offset counts back from today: 6 = 6 days ago, 0 = today.
+RECENT_ENTRIES = [
+    (6, "Week kickoff", "Set three goals for the week and wrote them where I'll actually see them. Ambitious but not crazy.", ["study", "gratitude"]),
+    (5, "Gym in the morning", "First early session in a while. Legs are going to hate me tomorrow but worth it.", ["exercise"]),
+    (4, "Slow afternoon", "Meetings ran long and focus never really showed up. Rescheduled the harder task for tomorrow.", ["study", "stress"]),
+    (3, "Dinner with friends", "Did not plan on staying out but the conversation kept going. Good kind of tired.", ["friends", "gratitude"]),
+    (2, "Caught up on sleep", "Went to bed early for once. Woke up before the alarm, which almost never happens.", ["sleep"]),
+    (1, "Focused block", "Two hours, phone in the other room, actually finished what I sat down to do.", ["study"]),
+    (0, "Today", "Steady day overall. Logging this before it slips - small things add up more than I give them credit for.", ["gratitude"]),
+]
+
 
 def _mood_for(day_index: int, rng: random.Random) -> tuple[int, int]:
     """
@@ -138,8 +152,10 @@ async def seed() -> None:
         checkin_count = 0
         for i in range(DAYS):
             day = start + timedelta(days=i)
-            # Roughly one day in seven is missed, so the chart has real gaps.
-            if rng.random() < 0.14:
+            # Roughly one day in seven is missed, so the chart has real gaps -
+            # except the last 7 days, which stay unbroken for the demo.
+            is_recent_week = i >= DAYS - 7
+            if not is_recent_week and rng.random() < 0.14:
                 continue
 
             mood, energy = _mood_for(i, rng)
@@ -155,9 +171,30 @@ async def seed() -> None:
             checkin_count += 1
 
         # --- journal entries -------------------------------------------
-        entry_days = sorted(rng.sample(range(DAYS), k=min(len(ENTRIES), DAYS)))
+        # Older entries are scattered across everything before the last
+        # week, so they never collide with the guaranteed recent-week ones.
+        older_window = range(DAYS - 7)
+        entry_days = sorted(rng.sample(older_window, k=min(len(ENTRIES), len(older_window))))
         for offset, (title, body, tag_names) in zip(entry_days, ENTRIES):
             day = start + timedelta(days=offset)
+            created = datetime.combine(
+                day,
+                datetime.min.time().replace(hour=rng.randint(8, 22)),
+                tzinfo=timezone.utc,
+            )
+            entry = JournalEntry(
+                user_id=user.id,
+                title=title,
+                content=body,
+                created_at=created,
+                updated_at=created,
+            )
+            entry.tags = [tags[n] for n in tag_names if n in tags]
+            db.add(entry)
+
+        # One guaranteed entry per day for the last 7 days.
+        for days_ago, title, body, tag_names in RECENT_ENTRIES:
+            day = today - timedelta(days=days_ago)
             created = datetime.combine(
                 day,
                 datetime.min.time().replace(hour=rng.randint(8, 22)),
@@ -204,10 +241,11 @@ async def seed() -> None:
 
     await engine.dispose()  # aiomysql raises at exit if the loop closes first
 
+    total_entries = len(entry_days) + len(RECENT_ENTRIES)
     print(
-        f"Seeded {checkin_count} check-ins, {len(ENTRIES)} journal entries, "
-        f"{len(TAGS)} tags, {len(HABITS)} habits, {log_count} habit logs "
-        f"across {DAYS} days."
+        f"Seeded {checkin_count} check-ins, {total_entries} journal entries "
+        f"(last 7 days guaranteed), {len(TAGS)} tags, {len(HABITS)} habits, "
+        f"{log_count} habit logs across {DAYS} days."
     )
     print(f"Log in with  {DEMO_EMAIL}  /  {DEMO_PASSWORD}")
 
