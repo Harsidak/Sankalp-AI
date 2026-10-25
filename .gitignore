@@ -67,3 +67,7 @@ htmlcov/
 # Vite
 dist-ssr
 *.local
+
+# College report & presentation docs
+College report/
+[Cc]ollege*/

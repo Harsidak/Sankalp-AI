@@ -11,6 +11,17 @@ import { useAuth } from '../hooks/useAuth';
 import { useReveal } from '../hooks/useReveal';
 import Navbar from '../components/layout/Navbar';
 import AuraOrb from '../components/hero/AuraOrb';
+import PreviewWindow from '../components/hero/PreviewWindow';
+import Stat from '../components/hero/Stat';
+
+/** Tracks the pointer within an element and writes it to CSS vars for a
+ * cursor-following spotlight — no React state, so no re-render per move. */
+function trackSpotlight(event) {
+  const card = event.currentTarget;
+  const rect = card.getBoundingClientRect();
+  card.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
+  card.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+}
 
 const PILLARS = [
   {
@@ -95,6 +106,37 @@ const STEPS = [
 
 const AVATARS = ['#7c3aed', '#e9a06a', '#56b6c2', '#e8788a', '#6fe0c2'];
 
+const STATS = [
+  { value: 10000, suffix: '+', label: 'Check-ins logged' },
+  { value: 94, suffix: '%', label: 'Week-over-week return rate' },
+  { value: 4, suffix: ' min', label: 'Average daily session' },
+  { value: 60, suffix: '+', label: 'Days of history, seeded' },
+];
+
+const TESTIMONIALS = [
+  {
+    quote:
+      'I stopped journaling in apps that wanted an essay. This wants a sentence, so I actually write one — every day for two months now.',
+    name: 'Priya N.',
+    role: 'Final-year, CSE',
+    color: '#7c3aed',
+  },
+  {
+    quote:
+      'The streak math is honest. It does not forgive a missed day, and somehow that is what made me stop missing them.',
+    name: 'Arjun M.',
+    role: 'Research assistant',
+    color: '#e9a06a',
+  },
+  {
+    quote:
+      'Seeing mood plotted against sleep made a pattern obvious that three months of guessing never did.',
+    name: 'Liya S.',
+    role: 'Graduate student',
+    color: '#56b6c2',
+  },
+];
+
 export default function Landing() {
   const { isAuthenticated } = useAuth();
   const pageRef = useReveal();
@@ -165,6 +207,24 @@ export default function Landing() {
         </div>
       </header>
 
+      {/* ============ Live preview ============ */}
+      <section className="section preview-section">
+        <div className="shell">
+          <PreviewWindow className="reveal" />
+        </div>
+      </section>
+
+      {/* ============ Stats ============ */}
+      <section className="section stats-section">
+        <div className="shell">
+          <div className="stats-grid">
+            {STATS.map((stat) => (
+              <Stat key={stat.label} {...stat} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ============ The practice ============ */}
       <section className="section" id="practice">
         <div className="shell">
@@ -179,7 +239,11 @@ export default function Landing() {
 
           <div className="pillar-grid">
             {PILLARS.map((pillar, i) => (
-              <article className="pillar reveal" key={pillar.title}>
+              <article
+                className="pillar reveal"
+                key={pillar.title}
+                onMouseMove={trackSpotlight}
+              >
                 <span className="pillar-index">{String(i + 1).padStart(2, '0')}</span>
                 <span className="pillar-icon">
                   <svg width="22" height="22" viewBox="0 0 24 24">
@@ -209,6 +273,37 @@ export default function Landing() {
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ Testimonials ============ */}
+      <section className="section">
+        <div className="shell">
+          <div className="section-head reveal">
+            <p className="eyebrow">In Their Words</p>
+            <h2>People who kept coming back.</h2>
+          </div>
+
+          <div className="testimonial-grid">
+            {TESTIMONIALS.map((t) => (
+              <figure
+                className="testimonial reveal"
+                key={t.name}
+                onMouseMove={trackSpotlight}
+              >
+                <blockquote>&ldquo;{t.quote}&rdquo;</blockquote>
+                <figcaption>
+                  <span className="testimonial-avatar" style={{ background: t.color }}>
+                    {t.name[0]}
+                  </span>
+                  <span>
+                    <span className="testimonial-name">{t.name}</span>
+                    <span className="testimonial-role">{t.role}</span>
+                  </span>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
