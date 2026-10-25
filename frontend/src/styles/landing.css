@@ -126,6 +126,255 @@
 }
 
 /* =========================================================
+   Orb anchor — sits in the hero only, on top of the wordmark and the echo
+   line beneath it (both z-index: 1) but under the foreground copy in
+   .hero-foot (z-index: 3). Static: it holds this spot regardless of scroll,
+   it does not travel, shrink or follow you down the page.
+   ========================================================= */
+
+.orb-anchor {
+  position: relative;
+  z-index: 2;
+  width: clamp(260px, 34vw, 460px);
+}
+
+/* Plays once on load, inside .orb-anchor and around the orb itself: it starts
+   tiny, dim and soft-focus — as if condensing out of nothing — then grows,
+   sharpens and settles into full size at the centre of the hero. Lives on its
+   own wrapper (not the orb's own root div) because that element already owns
+   a `transform` driven by the pointer parallax, and a CSS animation on the
+   same property would fight whichever one writes last. */
+.orb-build {
+  animation: orb-build 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes orb-build {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(28px);
+    filter: blur(16px);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-build {
+    animation: none;
+  }
+}
+
+/* Used instead of .orb-build whenever the intro loader is playing this
+   mount: that loader's own orb already performs the build, in a different
+   element, so this one just waits — invisible but fully laid out, so
+   IntroLoader can measure its real slot — then appears the instant the
+   loader's orb finishes travelling into this exact spot. The short
+   transition is insurance against a one-frame rect mismatch, not a visible
+   fade. */
+.orb-reveal {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.orb-reveal.is-visible {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-reveal {
+    transition: none;
+  }
+}
+
+/* =========================================================
+   Intro loader — full-screen splash before the home page reveals.
+   See IntroLoader.jsx for the three-beat shape: form, travel, dock. Reuses
+   .orb-build's keyframe for the forming itself — the orb grows the same way
+   here as it does in the hero — but everything around it (the backdrop,
+   the stars, the ring, the flash) only exists here, and the orb's later
+   flight to the hero slot is a second, independent transform on a wrapper
+   one level up, so it never fights the forming animation underneath it.
+   ========================================================= */
+
+.intro-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.intro-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, #2a1760 0%, #150b33 55%, #0a0618 100%);
+  transition: opacity 0.45s ease;
+}
+
+.intro-backdrop.is-fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ring + stars + flash, all centred as one group so the fade-out can apply
+   to all of them at once without touching the orb, which lives outside this
+   group precisely so it can keep travelling after this has gone transparent. */
+.intro-decor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220px;
+  height: 220px;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.4s ease;
+}
+
+.intro-decor.is-fading {
+  opacity: 0;
+}
+
+.intro-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.intro-ring circle {
+  fill: none;
+  stroke: #a78bfa;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-opacity: 0.85;
+  /* Circumference of r=100: 2 * pi * 100 ≈ 628. Traces from empty to full
+     over the same 2s the orb itself takes to form, so the ring closes right
+     as the orb finishes solidifying. */
+  stroke-dasharray: 628;
+  stroke-dashoffset: 628;
+  animation: intro-ring-trace 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes intro-ring-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A soft pulse timed to crest right as the build finishes, so "the orb is
+   now fully formed" reads as a distinct moment instead of the animation
+   just quietly stopping. */
+.intro-flash {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(167, 139, 250, 0.4) 45%, transparent 72%);
+  opacity: 0;
+  animation: intro-flash-pulse 0.45s ease-out 1.55s;
+}
+
+@keyframes intro-flash-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+.intro-particles {
+  position: absolute;
+  inset: 0;
+}
+
+/* Each star starts at (--px, --py) — set inline per-particle in JS, further
+   out and more spread than the orb's own radius, so they read as streaking
+   in across real distance — and flies to the centre, shrinking to nothing
+   as it arrives: absorbed into the orb rather than sliding behind it.
+   Delays are spread across most of the 2s build so stars keep arriving
+   throughout the orb's growth instead of all landing in the first half. */
+.intro-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* margin-top/-left (half the inline width/height, negated) are set
+     per-particle in JS so differently sized stars still centre on the
+     point they're positioned from. */
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 3px 1px #fff, 0 0 10px 3px rgba(196, 181, 253, 0.85);
+  opacity: 0;
+  animation-name: intro-particle-fly;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes intro-particle-fly {
+  0% {
+    transform: translate(var(--px), var(--py)) scale(1);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(0, 0) scale(0.15);
+    opacity: 0;
+  }
+}
+
+/* The piece that actually travels: positioned independently of .intro-decor
+   so it can keep moving after the backdrop and stars have faded out. Base
+   transform just centres it; .is-traveling adds the flight on top, driven
+   by --travel-x/--travel-y/--travel-scale computed in JS from the real gap
+   between this box and the hero's actual orb slot. */
+.intro-orb-travel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  transform: translate(-50%, -50%);
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.intro-orb-travel.is-traveling {
+  transform: translate(calc(-50% + var(--travel-x, 0px)), calc(-50% + var(--travel-y, 0px)))
+    scale(var(--travel-scale, 1));
+}
+
+.intro-orb-wrap {
+  position: relative;
+  width: 100%;
+  animation: orb-build 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.intro-orb {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-loader {
+    display: none;
+  }
+}
+
+/* =========================================================
    Hero
    ========================================================= */
 
@@ -247,9 +496,7 @@
 /* Layer 2 — the orb */
 .hero-orb {
   position: relative;
-  z-index: 2;
-  width: clamp(260px, 34vw, 460px);
-  margin-top: 2vh;
+  width: 100%;
   will-change: transform;
 }
 
@@ -422,6 +669,31 @@
   color: var(--brand);
 }
 
+/* A spark on arrival — the orb's glow landing here, one pillar at a time as
+   each card reveals (staggered by useReveal), rather than a shared one-shot. */
+.pillar.reveal .pillar-icon {
+  transition: box-shadow 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+
+.pillar.reveal.is-visible .pillar-icon {
+  animation: pillar-spark 0.7s var(--ease-out) 0.25s backwards;
+}
+
+@keyframes pillar-spark {
+  0% {
+    transform: scale(0.5);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 70%, transparent);
+  }
+  60% {
+    transform: scale(1.12);
+    box-shadow: 0 0 24px 6px color-mix(in srgb, var(--brand) 55%, transparent);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
 .pillar h3 { font-size: var(--step-1); }
 
 .pillar p {
@@ -554,6 +826,8 @@
 
 .preview-window {
   --tilt-progress: 1;
+  position: relative;
+  z-index: 0;
   width: min(100%, 980px);
   margin-inline: auto;
   border-radius: var(--r-xl);
@@ -566,6 +840,25 @@
     rotateX(calc((1 - var(--tilt-progress)) * 10deg))
     translateY(calc((1 - var(--tilt-progress)) * 26px));
   transition: transform 0.1s linear;
+}
+
+/* The orb's glow, picked up here as it fades out of the hero — this is what
+   sells the two as one continuous object rather than two separate reveals. */
+.preview-window::before {
+  content: '';
+  position: absolute;
+  inset: -15% -10%;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand) 55%, transparent),
+    transparent 75%
+  );
+  opacity: calc(var(--tilt-progress) * 0.85);
+  filter: blur(42px);
+  pointer-events: none;
+  transition: opacity 0.1s linear;
 }
 
 .preview-chrome {
@@ -657,6 +950,25 @@
 /* =========================================================
    Stats band
    ========================================================= */
+
+.stats-section {
+  position: relative;
+  z-index: 0;
+}
+
+.stats-section::before {
+  content: '';
+  position: absolute;
+  inset: -20% 15%;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand) 30%, transparent),
+    transparent 72%
+  );
+  filter: blur(50px);
+  pointer-events: none;
+}
 
 .stats-grid {
   display: grid;
@@ -788,7 +1100,9 @@
     text-align: left;
   }
 
-  .hero-orb { width: min(78vw, 380px); }
+  .orb-anchor {
+    width: min(78vw, 380px);
+  }
   .hero-echo { display: none; }
 
   .preview-body {

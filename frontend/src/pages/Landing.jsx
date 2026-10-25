@@ -6,13 +6,17 @@
  * Everything below it is ordinary sectioned content revealed on scroll.
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useReveal } from '../hooks/useReveal';
 import Navbar from '../components/layout/Navbar';
 import AuraOrb from '../components/hero/AuraOrb';
+import IntroLoader from '../components/hero/IntroLoader';
 import PreviewWindow from '../components/hero/PreviewWindow';
 import Stat from '../components/hero/Stat';
+
+const INTRO_SEEN_KEY = 'sankalp-intro-seen';
 
 /** Tracks the pointer within an element and writes it to CSS vars for a
  * cursor-following spotlight — no React state, so no re-render per move. */
@@ -140,9 +144,33 @@ const TESTIMONIALS = [
 export default function Landing() {
   const { isAuthenticated } = useAuth();
   const pageRef = useReveal();
+  // Plays once per browser tab: sessionStorage survives client-side nav away
+  // and back (so it doesn't replay every time someone hits "/"), but resets
+  // on a real reload or a fresh tab, which is when a loading screen belongs.
+  // Captured once at mount (not re-read from showIntro below) because it
+  // decides which of two different hero-orb reveals to use for this mount,
+  // and that choice shouldn't flip when showIntro later goes false.
+  const [introWillPlay] = useState(
+    () => typeof window !== 'undefined' && !window.sessionStorage.getItem(INTRO_SEEN_KEY),
+  );
+  const [showIntro, setShowIntro] = useState(introWillPlay);
+  // While the intro plays, the hero orb stays invisible — the loader's own
+  // orb is what's on screen — until the instant the loader's orb finishes
+  // travelling into this exact slot, at which point they're pixel-identical
+  // and swapping which one is visible is imperceptible. If there's no
+  // intro this mount, the hero orb is visible immediately and plays its own
+  // short build-in instead (see .orb-build below).
+  const [heroOrbVisible, setHeroOrbVisible] = useState(!introWillPlay);
+
+  const handleIntroDone = () => {
+    window.sessionStorage.setItem(INTRO_SEEN_KEY, '1');
+    setShowIntro(false);
+    setHeroOrbVisible(true);
+  };
 
   return (
     <div className="landing-page" ref={pageRef}>
+      {showIntro && <IntroLoader onDone={handleIntroDone} />}
       <Navbar />
 
       {/* ============ Hero ============ */}
@@ -151,8 +179,20 @@ export default function Landing() {
 
         <div className="hero-stage">
           <h1 className="hero-mega">SANKALP</h1>
+
+          <div className="orb-anchor">
+            <div
+              className={
+                introWillPlay
+                  ? `orb-reveal${heroOrbVisible ? ' is-visible' : ''}`
+                  : 'orb-build'
+              }
+            >
+              <AuraOrb className="hero-orb" />
+            </div>
+          </div>
+
           <span className="hero-echo">FIND YOUR CALM</span>
-          <AuraOrb className="hero-orb" />
         </div>
 
         <div className="hero-foot">

@@ -13,6 +13,13 @@
  *     requestAnimationFrame loop eases the current value toward it and writes
  *     the transform straight to the node. The easing is what makes it feel like
  *     the orb has weight rather than being glued to the cursor.
+ *
+ * It stays put in the hero — no scroll-driven travel, shrinking or drifting.
+ * The one-time build-in on first load (`.orb-build` / `.orb-reveal` in
+ * landing.css) lives on a wrapper one level up in Landing.jsx rather than on
+ * this component's own root, because that root's `transform` is already
+ * owned by the parallax loop above, and a CSS animation on the same property
+ * would fight whichever one writes last.
  */
 
 import { useEffect, useRef } from 'react';
