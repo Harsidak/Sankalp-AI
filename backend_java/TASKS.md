@@ -53,7 +53,7 @@ The JSON envelope is always `ApiResponse` (`common/ApiResponse.java`); errors ar
 | ai          | done                   |       |
 | **auth**    | **empty – teammate**   |       |
 | **users**   | **empty – teammate**   |       |
-| **checkins**| **empty – teammate**   |       |
+| checkins    | done                   |       |
 
 (Dashboard and insights read the `checkins` table with plain SQL, so they do not depend on the checkins Java code.)
 
@@ -124,6 +124,7 @@ Tip: the best templates are `tags` (simple CRUD) and `habits` (dates + streaks).
 - **health** – `GET /health`: runs `select 1`; says connected / disconnected.
 - **tags** – CRUD on labels. Name is lowercased, unique per user (409 if repeated). List shows how many entries use each tag.
 - **habits** – CRUD + `POST /{id}/log` which ticks/unticks a day (insert/delete one `habit_logs` row). Streaks are calculated in Java from the dates.
+- **checkins** – one mood/energy rating per day; posting twice re-rates the same day. `/today` returns null when nothing is recorded, `/streak` anchors on today/yesterday and looks back a year for the longest run.
 - **journal** – CRUD + search (`LIKE`) + filter by tags + pages. Tags attach through the `entry_tags` join table (many-to-many).
 - **dashboard** – one endpoint, five SQL queries (mood per day, averages, entry count, top tags, habit completions).
 - **insights** – SQL that relates mood to habits / weekdays / tags, plus a one-sentence headline written from the numbers.
