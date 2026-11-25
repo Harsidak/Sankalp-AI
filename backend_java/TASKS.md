@@ -51,8 +51,8 @@ The JSON envelope is always `ApiResponse` (`common/ApiResponse.java`); errors ar
 | dashboard   | done                   |       |
 | insights    | done                   |       |
 | ai          | done                   |       |
-| **auth**    | **empty – teammate**   |       |
-| **users**   | **empty – teammate**   |       |
+| auth        | done                   |       |
+| users       | done                   |       |
 | checkins    | done                   |       |
 
 (Dashboard and insights read the `checkins` table with plain SQL, so they do not depend on the checkins Java code.)
@@ -125,6 +125,8 @@ Tip: the best templates are `tags` (simple CRUD) and `habits` (dates + streaks).
 - **tags** – CRUD on labels. Name is lowercased, unique per user (409 if repeated). List shows how many entries use each tag.
 - **habits** – CRUD + `POST /{id}/log` which ticks/unticks a day (insert/delete one `habit_logs` row). Streaks are calculated in Java from the dates.
 - **checkins** – one mood/energy rating per day; posting twice re-rates the same day. `/today` returns null when nothing is recorded, `/streak` anchors on today/yesterday and looks back a year for the longest run.
+- **auth** – email/password register + login, HS256 access (15 min) and refresh (7 days) tokens; refresh rotates the stored SHA-256 hash, logout revokes it. `JwtFilter` turns a valid token into the `userId` request attribute and answers 401 otherwise.
+- **users** – `GET/PUT /users/me` profile plus `PUT /users/me/password`, with BCrypt hashes readable across both backends.
 - **journal** – CRUD + search (`LIKE`) + filter by tags + pages. Tags attach through the `entry_tags` join table (many-to-many).
 - **dashboard** – one endpoint, five SQL queries (mood per day, averages, entry count, top tags, habit completions).
 - **insights** – SQL that relates mood to habits / weekdays / tags, plus a one-sentence headline written from the numbers.

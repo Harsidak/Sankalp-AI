@@ -23,6 +23,11 @@ public class ErrorHandler {
         return body(HttpStatus.CONFLICT, "CONFLICT", e.getMessage());
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<?> unauthenticated(AuthenticationException e) {
+        return body(HttpStatus.UNAUTHORIZED, "AUTHENTICATION_ERROR", e.getMessage());
+    }
+
     // A request body broke a rule such as @Min(1) or @NotBlank
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> invalid(MethodArgumentNotValidException e) {
