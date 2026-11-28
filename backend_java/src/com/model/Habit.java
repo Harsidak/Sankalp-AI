@@ -1,6 +1,6 @@
-// One row of the habits table, plus two facts we calculate (done today? streak?).
-public class Habit extends Entity {
+package com.model;
 
+public class Habit extends Entity {
     private String name;
     private boolean doneToday;
     private int streak;
@@ -10,7 +10,6 @@ public class Habit extends Entity {
         this.name = name;
     }
 
-    // setters: the manager fills these in after it has calculated them
     public void setDoneToday(boolean doneToday) {
         this.doneToday = doneToday;
     }

@@ -1,6 +1,6 @@
-// One row of the checkins table: how the user felt on one day.
-public class CheckIn extends Entity {
+package com.model;
 
+public class CheckIn extends Entity {
     private String date;
     private int mood;
     private int energy;
@@ -16,7 +16,6 @@ public class CheckIn extends Entity {
 
     @Override
     public void show() {
-        // draw the mood as a little bar, for example mood 4 -> ####.
         String bar = "";
         for (int i = 0; i < mood; i++) {
             bar = bar + "#";

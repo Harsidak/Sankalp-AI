@@ -1,19 +1,19 @@
+package com.dao;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-// The "report": shows what SQL aggregate functions (COUNT, AVG) and JOINs can tell us.
-public class ReportManager {
-
+// The report: SQL aggregate functions (COUNT, AVG) and JOINs.
+public class ReportDao {
     private Connection con;
 
-    public ReportManager(Connection con) {
+    public ReportDao(Connection con) {
         this.con = con;
     }
 
     public void print(int userId) throws SQLException {
-        // 1) Averages over the last 30 days -- one row of aggregates, no GROUP BY needed.
         String sql1 = "SELECT COUNT(*) AS days, AVG(mood) AS avg_mood, AVG(energy) AS avg_energy FROM checkins "
                 + "WHERE user_id = ? AND checkin_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
         PreparedStatement ps = con.prepareStatement(sql1);
@@ -27,9 +27,6 @@ public class ReportManager {
         rs.close();
         ps.close();
 
-        // 2) Average mood on the days each habit was done.
-        //    habits JOIN habit_logs  -> the days the habit was done
-        //    JOIN checkins           -> the mood on exactly that day
         String sql2 = "SELECT h.name, COUNT(*) AS times, AVG(c.mood) AS avg_mood "
                 + "FROM habits h "
                 + "JOIN habit_logs l ON l.habit_id = h.id "
@@ -48,8 +45,8 @@ public class ReportManager {
         rs.close();
         ps.close();
 
-        // 3) Journal entries written this month.
-        String sql3 = "SELECT COUNT(*) FROM journal_entries WHERE user_id = ? "
+        // 3) journal entries written this month
+        String sql3 = "SELECT COUNT(*) FROM journal WHERE user_id = ? "
                 + "AND YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())";
         ps = con.prepareStatement(sql3);
         ps.setInt(1, userId);

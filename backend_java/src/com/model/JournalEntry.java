@@ -1,10 +1,10 @@
-// One row of the journal_entries table, plus its tags written as text ("study, health").
-public class JournalEntry extends Entity {
+package com.model;
 
+public class JournalEntry extends Entity {
     private String title;
     private String content;
     private String createdAt;
-    private String tags;
+    private String tags; // tag names as one text, e.g. "study, health"
 
     public JournalEntry(int id, String title, String content, String createdAt, String tags) {
         super(id);
@@ -30,13 +30,11 @@ public class JournalEntry extends Entity {
         return tags;
     }
 
-    // short version: one line, used in lists
     @Override
     public void show() {
         System.out.println(getId() + ". " + createdAt + "  " + title + "  [" + tags + "]");
     }
 
-    // long version: used when reading a single entry
     public void showFull() {
         show();
         System.out.println();

@@ -1,51 +1,57 @@
+import com.util.AppException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import com.dao.CheckInDao;
+import com.dao.HabitDao;
+import com.dao.JournalDao;
+import com.dao.ReportDao;
+import com.dao.TagDao;
+import com.dao.UserDao;
+import com.model.CheckIn;
+import com.model.Habit;
+import com.model.JournalEntry;
+import com.model.Tag;
+import com.model.User;
+import com.util.Db;
+import com.util.Input;
 
-// The menu. It only asks questions and prints answers; all database work happens in the manager classes.
+// The menu. It only asks questions and prints answers; all database work is in the dao classes.
 public class Main {
-
-    private static UserManager users;
-    private static CheckInManager checkIns;
-    private static HabitManager habits;
-    private static JournalManager journal;
-    private static TagManager tags;
-    private static ReportManager report;
+    private static UserDao users;
+    private static CheckInDao checkIns;
+    private static HabitDao habits;
+    private static JournalDao journal;
+    private static TagDao tags;
+    private static ReportDao report;
 
     public static void main(String[] args) throws Exception {
         Connection con = Db.connect();
         System.out.println("Connected to MySQL.");
-
-        users = new UserManager(con);
-        checkIns = new CheckInManager(con);
-        habits = new HabitManager(con);
-        journal = new JournalManager(con);
-        tags = new TagManager(con);
-        report = new ReportManager(con);
+        users = new UserDao(con);
+        checkIns = new CheckInDao(con);
+        habits = new HabitDao(con);
+        journal = new JournalDao(con);
+        tags = new TagDao(con);
+        report = new ReportDao(con);
 
         System.out.println("=== SANKALP : mood & habit tracker ===");
         User user = loginScreen();
         if (user != null) {
-            System.out.println();
-            System.out.print("Welcome, ");
+            System.out.print("\nWelcome, ");
             user.show();
             mainMenu(user.getId());
         }
-
         con.close();
         System.out.println("Goodbye!");
     }
 
-    // Keeps asking until the user logs in (returns the User) or chooses exit (returns null).
+    // Asks until the user logs in (returns the User) or chooses exit (returns null).
     private static User loginScreen() throws Exception {
         while (true) {
-            System.out.println();
-            System.out.println("1. Login");
-            System.out.println("2. Register");
-            System.out.println("0. Exit");
+            System.out.println("\n1. Login\n2. Register\n0. Exit");
             int choice = Input.number("Choose: ");
-
             try {
                 if (choice == 1) {
                     String email = Input.text("Email: ");
@@ -65,7 +71,11 @@ public class Main {
                     return null;
                 }
             } catch (SQLException e) {
-                System.out.println("That email is already registered. (" + e.getMessage() + ")");
+                if (e.getErrorCode() == 1062) { // 1062 = MySQL "duplicate entry" error
+                    System.out.println("That email is already registered.");
+                } else {
+                    System.out.println("Database error: " + e.getMessage());
+                }
             }
         }
     }
@@ -95,7 +105,6 @@ public class Main {
             System.out.println("15. Show report");
             System.out.println(" 0. Exit");
             int choice = Input.number("Choose: ");
-
             if (choice == 0) {
                 return;
             }

@@ -1,6 +1,6 @@
-// One row of the tags table, plus how many journal entries use it.
-public class Tag extends Entity {
+package com.model;
 
+public class Tag extends Entity {
     private String name;
     private int entryCount;
 

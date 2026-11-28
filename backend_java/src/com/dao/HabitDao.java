@@ -1,15 +1,18 @@
+package com.dao;
+
+import com.util.AppException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import com.model.Habit;
 
 // Everything about the habits and habit_logs tables.
-public class HabitManager {
-
+public class HabitDao {
     private Connection con;
 
-    public HabitManager(Connection con) {
+    public HabitDao(Connection con) {
         this.con = con;
     }
 
@@ -21,32 +24,27 @@ public class HabitManager {
         ps.close();
     }
 
-    // Deleting a habit also deletes its logs (ON DELETE CASCADE in the table).
     public void delete(int userId, int habitId) throws SQLException, AppException {
         PreparedStatement ps = con.prepareStatement("DELETE FROM habits WHERE id = ? AND user_id = ?");
         ps.setInt(1, habitId);
         ps.setInt(2, userId);
-        int rows = ps.executeUpdate(); // executeUpdate returns how many rows were changed
+        int rows = ps.executeUpdate(); // number of rows changed
         ps.close();
         if (rows == 0) {
             throw new AppException("You have no habit with that number.");
         }
     }
 
-    // All habits of the user, each with "done today?" and its streak.
     public ArrayList<Habit> list(int userId) throws SQLException {
         PreparedStatement ps = con.prepareStatement("SELECT id, name FROM habits WHERE user_id = ? ORDER BY id");
         ps.setInt(1, userId);
         ResultSet rs = ps.executeQuery();
-
         ArrayList<Habit> list = new ArrayList<Habit>();
         while (rs.next()) {
             list.add(new Habit(rs.getInt("id"), rs.getString("name")));
         }
         rs.close();
         ps.close();
-
-        // fill in the calculated facts once the first query is finished
         for (Habit habit : list) {
             habit.setDoneToday(isDone(habit.getId(), 0));
             habit.setStreak(streak(habit.getId()));
@@ -54,7 +52,6 @@ public class HabitManager {
         return list;
     }
 
-    // Tick today if not ticked yet, untick if already ticked. Returns true when it is now ticked.
     public boolean toggleToday(int userId, int habitId) throws SQLException, AppException {
         PreparedStatement check = con.prepareStatement("SELECT COUNT(*) FROM habits WHERE id = ? AND user_id = ?");
         check.setInt(1, habitId);
@@ -84,7 +81,6 @@ public class HabitManager {
         return nowDone;
     }
 
-    // Was the habit done "daysAgo" days ago? (0 = today, 1 = yesterday ...)
     private boolean isDone(int habitId, int daysAgo) throws SQLException {
         String sql = "SELECT COUNT(*) FROM habit_logs WHERE habit_id = ? AND done_date = DATE_SUB(CURDATE(), INTERVAL ? DAY)";
         PreparedStatement ps = con.prepareStatement(sql);
@@ -98,8 +94,6 @@ public class HabitManager {
         return done;
     }
 
-    // Streak = how many days in a row the habit was done.
-    // If today is not done yet we start counting from yesterday, so the streak is not "lost" before the day ends.
     private int streak(int habitId) throws SQLException {
         int start = 0;
         if (!isDone(habitId, 0)) {

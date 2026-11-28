@@ -1,17 +1,13 @@
-// One row of the users table.
-public class User extends Entity {
+package com.model;
 
+public class User extends Entity {
     private String email;
     private String fullName;
 
     public User(int id, String email, String fullName) {
-        super(id); // call the parent constructor to store the id
+        super(id);
         this.email = email;
         this.fullName = fullName;
-    }
-
-    public String getFullName() {
-        return fullName;
     }
 
     @Override

@@ -1,3 +1,6 @@
+package com.dao;
+
+import com.util.AppException;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,21 +10,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import com.model.JournalEntry;
 
-// Everything about journal_entries (and the entry_tags join table).
-public class JournalManager {
-
+// Everything about journal and the journal_tags join table.
+public class JournalDao {
     private Connection con;
 
-    public JournalManager(Connection con) {
+    public JournalDao(Connection con) {
         this.con = con;
     }
 
-    // Save an entry, then attach its tags. tagsText looks like "study, health" (can be empty).
     public void add(int userId, String title, String content, String tagsText) throws SQLException {
-        String sql = "INSERT INTO journal_entries (user_id, title, content) VALUES (?, ?, ?)";
-        // RETURN_GENERATED_KEYS lets us ask MySQL "which id did you just give this row?"
-        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        String sql = "INSERT INTO journal (user_id, title, content) VALUES (?, ?, ?)";
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS); // lets us ask for the new id
         ps.setInt(1, userId);
         ps.setString(2, title);
         ps.setString(3, content);
@@ -32,8 +33,7 @@ public class JournalManager {
         keys.close();
         ps.close();
 
-        String[] names = tagsText.split(","); // "study, health" -> ["study", " health"]
-        for (String name : names) {
+        for (String name : tagsText.split(",")) {
             name = name.trim().toLowerCase();
             if (!name.isEmpty()) {
                 attachTag(userId, entryId, name);
@@ -41,8 +41,6 @@ public class JournalManager {
         }
     }
 
-    // Make sure the tag exists, then link it to the entry in the join table.
-    // INSERT IGNORE = "if this would break a UNIQUE / PRIMARY KEY rule, silently skip it".
     private void attachTag(int userId, int entryId, String tagName) throws SQLException {
         PreparedStatement insertTag = con.prepareStatement("INSERT IGNORE INTO tags (user_id, name) VALUES (?, ?)");
         insertTag.setInt(1, userId);
@@ -59,28 +57,26 @@ public class JournalManager {
         rs.close();
         findTag.close();
 
-        PreparedStatement link = con.prepareStatement("INSERT IGNORE INTO entry_tags (entry_id, tag_id) VALUES (?, ?)");
+        PreparedStatement link = con.prepareStatement("INSERT IGNORE INTO journal_tags (journal_id, tag_id) VALUES (?, ?)");
         link.setInt(1, entryId);
         link.setInt(2, tagId);
         link.executeUpdate();
         link.close();
     }
 
-    // List entries, newest first. If search is not empty, only entries whose title or content contains it.
-    // Two LEFT JOINs go entry -> entry_tags -> tags; GROUP_CONCAT glues the tag names of one entry into one text.
+    // Newest first. search = "" lists everything. GROUP_CONCAT joins the tag names of one entry into one text.
     public ArrayList<JournalEntry> list(int userId, String search) throws SQLException {
         String sql = "SELECT e.id, e.title, e.content, e.created_at, GROUP_CONCAT(t.name SEPARATOR ', ') AS tags "
-                + "FROM journal_entries e "
-                + "LEFT JOIN entry_tags et ON et.entry_id = e.id "
-                + "LEFT JOIN tags t ON t.id = et.tag_id "
+                + "FROM journal e "
+                + "LEFT JOIN journal_tags jt ON jt.journal_id = e.id "
+                + "LEFT JOIN tags t ON t.id = jt.tag_id "
                 + "WHERE e.user_id = ? AND (e.title LIKE ? OR e.content LIKE ?) "
                 + "GROUP BY e.id ORDER BY e.created_at DESC";
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, userId);
-        ps.setString(2, "%" + search + "%"); // % means "anything", so %walk% matches "a walk today"
+        ps.setString(2, "%" + search + "%"); // % = anything, so %walk% matches "a walk today"
         ps.setString(3, "%" + search + "%");
         ResultSet rs = ps.executeQuery();
-
         ArrayList<JournalEntry> list = new ArrayList<JournalEntry>();
         while (rs.next()) {
             String tags = rs.getString("tags");
@@ -95,7 +91,6 @@ public class JournalManager {
         return list;
     }
 
-    // Find one entry in the list by its id.
     public JournalEntry get(int userId, int entryId) throws SQLException, AppException {
         for (JournalEntry entry : list(userId, "")) {
             if (entry.getId() == entryId) {
@@ -106,7 +101,7 @@ public class JournalManager {
     }
 
     public void delete(int userId, int entryId) throws SQLException, AppException {
-        PreparedStatement ps = con.prepareStatement("DELETE FROM journal_entries WHERE id = ? AND user_id = ?");
+        PreparedStatement ps = con.prepareStatement("DELETE FROM journal WHERE id = ? AND user_id = ?");
         ps.setInt(1, entryId);
         ps.setInt(2, userId);
         int rows = ps.executeUpdate();
@@ -116,11 +111,9 @@ public class JournalManager {
         }
     }
 
-    // Write all entries into a text file. Returns how many were written.
+    // Writes all entries into a text file. Returns how many were written.
     public int exportToFile(int userId, String fileName) throws SQLException, IOException {
         ArrayList<JournalEntry> entries = list(userId, "");
-
-        // characters -> buffer -> file. The buffer collects text and writes it in bigger chunks (faster).
         BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         for (JournalEntry entry : entries) {
             writer.write(entry.getCreatedAt() + "  " + entry.getTitle() + "  [" + entry.getTags() + "]");
@@ -129,7 +122,7 @@ public class JournalManager {
             writer.newLine();
             writer.newLine();
         }
-        writer.close(); // close() also flushes what is still in the buffer into the file
+        writer.close(); // also flushes what is still in the buffer into the file
         return entries.size();
     }
 }
